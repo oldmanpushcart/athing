@@ -12,6 +12,7 @@ import com.github.ompc.athing.aliyun.framework.component.meta.ThServiceMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.platform.AliyunThingPlatformException;
+import com.github.ompc.athing.aliyun.platform.AliyunThingPlatformResponseException;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.platform.ThingPlatformException;
 import com.github.ompc.athing.standard.platform.domain.SortOrder;
@@ -113,7 +114,8 @@ public class ThProductStub {
 
             // 平台返回调用失败
             if (!response.getSuccess()) {
-                throw new AliyunThingPlatformException(
+                throw new AliyunThingPlatformResponseException(
+                        response.getRequestId(),
                         String.format("/%s/%s invoke service: %s response failure, code=%s;message=%s;",
                                 productId,
                                 thingId,
@@ -194,7 +196,8 @@ public class ThProductStub {
 
             // 平台返回调用失败
             if (!response.getSuccess()) {
-                throw new AliyunThingPlatformException(
+                throw new AliyunThingPlatformResponseException(
+                        response.getRequestId(),
                         String.format("/%s/%s set property response failure, code=%s;message=%s;identities=%s;",
                                 productId,
                                 thingId,

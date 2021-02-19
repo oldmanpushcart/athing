@@ -7,6 +7,7 @@ import com.aliyuncs.iot.model.v20180120.QueryDevicePropertiesDataResponse;
 import com.github.ompc.athing.aliyun.framework.component.meta.ThPropertyMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.platform.AliyunThingPlatformException;
+import com.github.ompc.athing.aliyun.platform.AliyunThingPlatformResponseException;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.platform.ThingPlatformException;
 import com.github.ompc.athing.standard.platform.domain.SortOrder;
@@ -81,10 +82,10 @@ class PropertiesSnapshotIteratorImpl implements Iterator<Map.Entry<Identifier, C
 
         try {
             final QueryDevicePropertiesDataResponse response = client.getAcsResponse(request);
-
             // 平台返回调用失败
             if (!response.getSuccess()) {
-                throw new AliyunThingPlatformException(
+                throw new AliyunThingPlatformResponseException(
+                        response.getRequestId(),
                         String.format("/%s/%s get property response failure, code=%s;message=%s;identifier=%s;",
                                 productId,
                                 thingId,

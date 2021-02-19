@@ -23,7 +23,6 @@ import com.github.ompc.athing.standard.thing.ThingException;
 import com.github.ompc.athing.standard.thing.config.ThingConfig;
 import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,7 +176,7 @@ public class PuppetTestCase extends PuppetSupport {
     }
 
     @Test
-    @Ignore
+    // @Ignore
     public void test$platform_batch_get_properties$success() throws ThingPlatformException {
 
         final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");
