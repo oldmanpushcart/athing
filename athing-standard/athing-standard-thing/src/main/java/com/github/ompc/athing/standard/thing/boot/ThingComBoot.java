@@ -23,11 +23,11 @@ public interface ThingComBoot {
      *
      * @param productId 产品ID
      * @param thingId   设备ID
-     * @param bootOpt   启动选项
+     * @param arguments 启动参数
      * @return 设备组件
      * @throws Exception 启动失败
      */
-    ThingCom bootUp(String productId, String thingId, BootOption bootOpt) throws Exception;
+    ThingCom bootUp(String productId, String thingId, String arguments) throws Exception;
 
     /**
      * 设备组件厂商信息

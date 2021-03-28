@@ -114,6 +114,7 @@ public class ThingImpl extends ThingComContainerImpl implements Thing {
                                             logger.warn("{}/mqtt consume message failure, topic={};message={};", ThingImpl.this, topic, message, cause);
                                         }
                                     }));
+                                    logger.debug("{}/mqtt subscribe topic: {} success", this, topicExpress);
                                 } catch (MqttException cause) {
                                     throw new ThingException(
                                             ThingImpl.this,

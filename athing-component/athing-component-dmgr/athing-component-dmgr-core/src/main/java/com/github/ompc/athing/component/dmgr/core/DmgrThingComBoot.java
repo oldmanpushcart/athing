@@ -2,7 +2,6 @@ package com.github.ompc.athing.component.dmgr.core;
 
 import com.github.ompc.athing.component.dmgr.core.impl.DmgrThingComImpl;
 import com.github.ompc.athing.standard.component.ThingCom;
-import com.github.ompc.athing.standard.thing.boot.BootOption;
 import com.github.ompc.athing.standard.thing.boot.ThingComBoot;
 import org.kohsuke.MetaInfServices;
 
@@ -23,7 +22,7 @@ public class DmgrThingComBoot implements ThingComBoot {
     }
 
     @Override
-    public ThingCom bootUp(String productId, String thingId, BootOption bootOpt) {
+    public ThingCom bootUp(String productId, String thingId, String arguments) {
         return thingCom;
     }
 
