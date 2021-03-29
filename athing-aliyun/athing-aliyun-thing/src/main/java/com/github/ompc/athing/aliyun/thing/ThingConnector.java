@@ -32,7 +32,7 @@ public class ThingConnector {
 
 
     /**
-     * 设备连接平台
+     * 连接设备平台
      *
      * @param thingServerUrl 设备服务地址
      * @param access         设备连接密钥
@@ -97,9 +97,6 @@ public class ThingConnector {
                     thing.connect();
                 } catch (Exception cause) {
                     thing.destroy();
-                    if (cause instanceof ThingException) {
-                        throw (ThingException) cause;
-                    }
                     throw new ThingException(thing, "connect occur error!", cause);
                 }
                 return thing;
