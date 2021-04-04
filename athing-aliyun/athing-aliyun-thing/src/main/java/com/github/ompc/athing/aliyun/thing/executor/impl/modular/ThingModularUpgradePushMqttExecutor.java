@@ -4,7 +4,7 @@ import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
-import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
+import com.github.ompc.athing.aliyun.thing.executor.ThingMessenger;
 import com.github.ompc.athing.aliyun.thing.util.FileUtils;
 import com.github.ompc.athing.aliyun.thing.util.HttpUtils;
 import com.github.ompc.athing.standard.thing.ThingException;
@@ -21,7 +21,7 @@ import java.net.URL;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateSequenceId;
+import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateToken;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -34,12 +34,12 @@ public class ThingModularUpgradePushMqttExecutor implements MqttExecutor, MqttEx
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ThingImpl thing;
-    private final MqttPoster poster;
+    private final ThingMessenger messenger;
     private final Gson gson = GsonFactory.getGson();
 
-    public ThingModularUpgradePushMqttExecutor(ThingImpl thing, MqttPoster poster) {
+    public ThingModularUpgradePushMqttExecutor(ThingImpl thing, ThingMessenger messenger) {
         this.thing = thing;
-        this.poster = poster;
+        this.messenger = messenger;
     }
 
     @Override
@@ -133,9 +133,9 @@ public class ThingModularUpgradePushMqttExecutor implements MqttExecutor, MqttEx
         try {
 
             // 发送进度消息
-            poster.post(format("/ota/device/progress/%s/%s", thing.getProductId(), thing.getThingId()),
+            messenger.post(format("/ota/device/progress/%s/%s", thing.getProductId(), thing.getThingId()),
                     new MapObject()
-                            .putProperty("id", generateSequenceId())
+                            .putProperty("id", generateToken())
                             .enterProperty("params")
                             /**/.putProperty("step", step)
                             /**/.putProperty("desc", desc)
@@ -321,29 +321,18 @@ public class ThingModularUpgradePushMqttExecutor implements MqttExecutor, MqttEx
         }
 
         @Override
-        public void commit() throws ThingException {
-            thing.getThingOp().reportModule(module, (id, reply) -> {
-
-                if (!reply.isSuccess()) {
-                    logger.warn("{}/module/upgrade/commit failure, req={};module={};version={};code={};message={};",
+        public void commit() {
+            thing.getThingOp().reportModule(module)
+                    .onSuccess(future -> logger.info("{}/module/upgrade/commit success, module={};version={};",
                             thing,
-                            id,
                             module.getModuleId(),
-                            module.getModuleVersion(),
-                            reply.getCode(),
-                            reply.getMessage()
-                    );
-                    return;
-                }
-
-                // 已提交
-                logger.info("{}/module/upgrade commit success, module={};version={};",
-                        thing,
-                        module.getModuleId(),
-                        module.getModuleVersion()
-                );
-
-            });
+                            module.getModuleVersion()
+                    ))
+                    .onException(future -> logger.warn("{}/module/upgrade/commit failure, module={};version={};",
+                            thing,
+                            module.getModuleId(),
+                            module.getModuleVersion()
+                    ));
         }
 
     }

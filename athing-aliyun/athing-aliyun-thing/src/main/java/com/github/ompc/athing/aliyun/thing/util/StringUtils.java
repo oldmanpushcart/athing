@@ -13,7 +13,7 @@ public class StringUtils {
      *
      * @return ID序列
      */
-    public static String generateSequenceId() {
+    public static String generateToken() {
 
         // 时间戳做种子
         final String seed = String.valueOf(currentTimeMillis());

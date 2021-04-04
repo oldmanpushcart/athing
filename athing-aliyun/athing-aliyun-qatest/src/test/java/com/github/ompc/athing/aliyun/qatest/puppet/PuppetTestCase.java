@@ -1,7 +1,6 @@
 package com.github.ompc.athing.aliyun.qatest.puppet;
 
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
-import com.github.ompc.athing.aliyun.qatest.QaBlockedThingOpCb;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.EchoThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.ResourceThingCom;
@@ -20,6 +19,8 @@ import com.github.ompc.athing.standard.platform.message.ThingReplyServiceReturnM
 import com.github.ompc.athing.standard.platform.util.TpEmptyReturn;
 import com.github.ompc.athing.standard.platform.util.TpReturnHelper;
 import com.github.ompc.athing.standard.thing.ThingException;
+import com.github.ompc.athing.standard.thing.ThingReplyFuture;
+import com.github.ompc.athing.standard.thing.ThingTokenFuture;
 import com.github.ompc.athing.standard.thing.config.ThingConfig;
 import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
 import org.junit.Assert;
@@ -35,26 +36,31 @@ public class PuppetTestCase extends PuppetSupport {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Test
-    public void test$thing_post_properties$success() throws ThingException, InterruptedException {
+    public void test$thing_post_properties$success() throws InterruptedException {
         final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");
         final Identifier memoryInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "memory_info");
         final Identifier networksInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "network_info");
         final Identifier powersInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "power_info");
         final Identifier storesInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "store_info");
 
-        final String reqId = tPuppet.getThingOp().postThingProperties(
+        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postThingProperties(
                 new Identifier[]{
                         cpuInfoId,
                         memoryInfoId,
                         networksInfoId,
                         powersInfoId,
                         storesInfoId
-                },
-                (id, reply) ->
-                        Assert.assertTrue(reply.isSuccess())
+                }
         );
 
-        final ThingPostPropertyMessage message = waitingForPostMessageByReqId(reqId);
+        future.sync();
+        if (future.isException()) {
+            future.getException().printStackTrace();
+        }
+
+        Assert.assertTrue(future.isSuccess());
+
+        final ThingPostPropertyMessage message = waitingForPostMessageByReqId(future.getToken());
         Assert.assertNotNull(message.getPropertySnapshot(cpuInfoId));
         Assert.assertNotNull(message.getPropertySnapshot(memoryInfoId));
         Assert.assertNotNull(message.getPropertySnapshot(networksInfoId));
@@ -63,27 +69,30 @@ public class PuppetTestCase extends PuppetSupport {
 
     }
 
-    @Test(expected = ThingException.class)
-    public void test$thing_post_properties$failure$property_not_provide() throws ThingException {
-        tPuppet.getThingOp().postThingProperties(
+    @Test
+    public void test$thing_post_properties$failure$property_not_provide() throws InterruptedException {
+        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postThingProperties(
                 new Identifier[]{
                         Identifier.toIdentifier("not_exist_component", "not_exist_property")
-                },
-                (id, reply) -> Assert.assertTrue(reply.isSuccess())
+                }
         );
-
-
+        future.sync();
+        Assert.assertTrue(future.isException());
+        Assert.assertTrue(future.getException() instanceof ThingException);
     }
 
     @Test
-    public void test$thing_post_event$success() throws ThingException, InterruptedException {
-        final String reqId = tPuppet.getThingOp().postThingEvent(new ThingEvent<>(
+    public void test$thing_post_event$success() throws InterruptedException {
+        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postThingEvent(new ThingEvent<>(
                         Identifier.toIdentifier(EchoThingCom.THING_COM_ID, "echo_event"),
                         new EchoThingCom.Echo("HELLO!")
-                ),
-                (id, reply) -> Assert.assertTrue(reply.isSuccess())
+                )
         );
-        final ThingPostEventMessage message = waitingForPostMessageByReqId(reqId);
+
+        future.sync();
+        Assert.assertTrue(future.isSuccess());
+
+        final ThingPostEventMessage message = waitingForPostMessageByReqId(future.getToken());
         final EchoThingCom.Echo echo = message.getData();
         Assert.assertEquals("HELLO!", echo.getWords());
     }
@@ -109,12 +118,12 @@ public class PuppetTestCase extends PuppetSupport {
 
     @Test
     public void test$thing_update_config$success() throws ThingException, InterruptedException {
-        final QaBlockedThingOpCb<ThingConfigApply> opCb = new QaBlockedThingOpCb<>();
-        final String reqId = tPuppet.getThingOp().updateThingConfig(opCb);
-        opCb.waitForCompleted();
-        Assert.assertEquals(reqId, opCb.getId());
-        Assert.assertTrue(opCb.getReply().isSuccess());
-        opCb.getReply().getData().apply();
+
+        final ThingReplyFuture<ThingConfigApply> future = tPuppet.getThingOp().updateThingConfig();
+        future.sync();
+        Assert.assertTrue(future.isSuccess());
+        Assert.assertTrue(future.getSuccess().isOk());
+        future.getSuccess().getData().apply();
         final ThingConfig cfg = waitingForReceiveThingConfig();
         Assert.assertNotNull(cfg);
     }
@@ -122,9 +131,10 @@ public class PuppetTestCase extends PuppetSupport {
     @Test
     public void test$thing_upgrade_module$success() throws ThingException, InterruptedException, TimeoutException {
         final ResourceThingCom resourceThingCom = tPuppet.getThingComponent(ResourceThingCom.class, true);
-        tPuppet.getThingOp().reportModule(resourceThingCom, (id, reply) -> {
+        final ThingTokenFuture<Void> future = tPuppet.getThingOp().reportModule(resourceThingCom);
 
-        });
+        future.sync();
+        Assert.assertTrue(future.isSuccess());
 
         // spin for module upgrade
         final long start = System.currentTimeMillis();
@@ -177,13 +187,27 @@ public class PuppetTestCase extends PuppetSupport {
 
     @Test
     // @Ignore
-    public void test$platform_batch_get_properties$success() throws ThingPlatformException {
+    public void test$platform_batch_get_properties$success() throws ThingPlatformException, InterruptedException {
 
         final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");
         final Identifier memoryInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "memory_info");
         final Identifier networksInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "network_info");
         final Identifier powersInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "power_info");
         final Identifier storesInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "store_info");
+
+        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postThingProperties(new Identifier[]{
+                cpuInfoId,
+                memoryInfoId,
+                networksInfoId,
+                powersInfoId,
+                storesInfoId
+        });
+
+        future.sync();
+        Assert.assertTrue(future.isSuccess());
+        Assert.assertTrue(future.getSuccess().isOk());
+
+
         final Set<Identifier> identifiers = new HashSet<Identifier>() {{
             add(cpuInfoId);
             add(memoryInfoId);

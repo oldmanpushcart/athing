@@ -5,7 +5,7 @@ import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
 import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
-import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
+import com.github.ompc.athing.aliyun.thing.executor.ThingMessenger;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.thing.ThingException;
 import com.google.gson.Gson;
@@ -19,8 +19,8 @@ import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
 import static com.github.ompc.athing.aliyun.framework.util.GsonFactory.getEmptyIfNull;
-import static com.github.ompc.athing.aliyun.thing.executor.MqttPoster.MQTT_QOS_AT_LEAST_ONCE;
-import static com.github.ompc.athing.aliyun.thing.executor.MqttPoster.MQTT_QOS_AT_MOST_ONCE;
+import static com.github.ompc.athing.aliyun.thing.executor.ThingMessenger.MQTT_QOS_AT_LEAST_ONCE;
+import static com.github.ompc.athing.aliyun.thing.executor.ThingMessenger.MQTT_QOS_AT_MOST_ONCE;
 import static com.github.ompc.athing.aliyun.thing.executor.impl.AlinkReplyImpl.*;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -33,14 +33,14 @@ public class ThingServiceInvokeMqttExecutor implements MqttExecutor, MqttExecuto
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ThingImpl thing;
-    private final MqttPoster poster;
+    private final ThingMessenger messenger;
 
     private final JsonParser parser = new JsonParser();
     private final Gson gson = GsonFactory.getGson();
 
-    public ThingServiceInvokeMqttExecutor(ThingImpl thing, MqttPoster poster) {
+    public ThingServiceInvokeMqttExecutor(ThingImpl thing, ThingMessenger messenger) {
         this.thing = thing;
-        this.poster = poster;
+        this.messenger = messenger;
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ThingServiceInvokeMqttExecutor implements MqttExecutor, MqttExecuto
     }
 
     @Override
-    public void handle(String mqttTopic, MqttMessage mqttMessage) throws Exception {
+    public void handle(String mqttTopic, MqttMessage mqttMessage) {
 
         final JsonObject requestJsonObject = parser.parse(new String(mqttMessage.getPayload(), UTF_8)).getAsJsonObject();
         final ThingServiceInvoker invoker = new ThingServiceInvoker(mqttTopic, requestJsonObject);
@@ -125,10 +125,9 @@ public class ThingServiceInvokeMqttExecutor implements MqttExecutor, MqttExecuto
      * @param invoker 服务调用者
      * @param code    alink返回码
      * @param message alink返回信息
-     * @throws ThingException 应答异常
      */
-    private void reply(ThingServiceInvoker invoker, int code, String message) throws ThingException {
-        poster.post(invoker.getReplyTopic(), invoker.getQos(), failure(invoker.reqId, code, message));
+    private void reply(ThingServiceInvoker invoker, int code, String message) {
+        messenger.post(invoker.getReplyTopic(), invoker.getQos(), failure(invoker.reqId, code, message));
     }
 
     /**
@@ -136,10 +135,9 @@ public class ThingServiceInvokeMqttExecutor implements MqttExecutor, MqttExecuto
      *
      * @param invoker 服务调用者
      * @param result  设备组件返回
-     * @throws ThingException 应答异常
      */
-    private void reply(ThingServiceInvoker invoker, Object result) throws ThingException {
-        poster.post(
+    private void reply(ThingServiceInvoker invoker, Object result) {
+        messenger.post(
                 invoker.getReplyTopic(),
                 invoker.getQos(),
                 success(invoker.reqId, "success", getEmptyIfNull(result))

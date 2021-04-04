@@ -4,14 +4,16 @@ import com.github.ompc.athing.aliyun.framework.component.meta.ThPropertyMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
+import com.github.ompc.athing.aliyun.thing.ThingPromise;
+import com.github.ompc.athing.aliyun.thing.ThingReplyPromise;
 import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
-import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
-import com.github.ompc.athing.aliyun.thing.executor.ThingOpPingPong;
+import com.github.ompc.athing.aliyun.thing.executor.ThingMessenger;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingEvent;
 import com.github.ompc.athing.standard.thing.ThingException;
-import com.github.ompc.athing.standard.thing.ThingOpCb;
+import com.github.ompc.athing.standard.thing.ThingReply;
+import com.github.ompc.athing.standard.thing.ThingReplyFuture;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -19,11 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
-import static com.github.ompc.athing.aliyun.thing.executor.MqttPoster.MQTT_QOS_AT_LEAST_ONCE;
-import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateSequenceId;
+import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateToken;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -35,16 +37,14 @@ public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMes
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ThingImpl thing;
-    private final MqttPoster poster;
-    private final ThingOpPingPong pingPong;
+    private final ThingMessenger messenger;
     private final Gson gson = GsonFactory.getGson();
     private final Type tokenType = new TypeToken<AlinkReplyImpl<Map<String, String>>>() {
     }.getType();
 
-    public ThingPostMqttExecutor(ThingImpl thing, MqttPoster poster, ThingOpPingPong pingPong) {
+    public ThingPostMqttExecutor(ThingImpl thing, ThingMessenger messenger) {
         this.thing = thing;
-        this.poster = poster;
-        this.pingPong = pingPong;
+        this.messenger = messenger;
     }
 
     @Override
@@ -58,22 +58,22 @@ public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMes
     @Override
     public void handle(String mqttTopic, MqttMessage mqttMessage) {
 
+        // 消息内容
+        final String message = new String(mqttMessage.getPayload(), UTF_8);
+
         // 解析alink应答数据
-        final AlinkReplyImpl<Map<String, String>> reply = gson.fromJson(
-                new String(mqttMessage.getPayload(), UTF_8),
-                tokenType
-        );
+        final AlinkReplyImpl<Map<String, String>> reply = gson.fromJson(message, tokenType);
 
         // 请求ID
-        final String reqId = reply.getReqId();
-        logger.debug("{}/post reply received, req={};topic={};", thing, reqId, mqttTopic);
+        final String token = reply.getReqId();
+        logger.debug("{}/post reply received, token={};topic={};message={};", thing, token, mqttTopic, message);
 
-        // 拿到执行回调
-        final ThingOpCb<?> thingOpCb = pingPong.pong(reqId);
-        if (null == thingOpCb) {
-            logger.warn("{}/post reply received, but callback is not found, req={};topic={};",
+        // 拿到应答的promise
+        final ThingPromise<ThingReply<?>> replyF = messenger.reply(token);
+        if (null == replyF) {
+            logger.warn("{}/post reply received, but promise is not found, token={};topic={};",
                     thing,
-                    reqId,
+                    token,
                     mqttTopic
             );
             return;
@@ -85,53 +85,50 @@ public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMes
                 && !reply.getData().isEmpty()) {
             logger.warn("{}/property/post reply, but some properties failure, req={};properties={};",
                     thing,
-                    reqId,
+                    token,
                     reply.getData()
             );
         }
 
         // 应答
-        thingOpCb.callback(reqId, ThingOpReplyImpl.empty(reply));
+        replyF.trySuccess(ThingReplyImpl.empty(reply));
 
     }
 
     /**
      * 报告设备事件
      *
-     * @param thingOpCb 回调
-     * @return 请求ID
+     * @param event 事件
+     * @return future
      */
-    public String postThingEvent(ThingEvent<?> event, ThingOpCb<Void> thingOpCb) throws ThingException {
+    public ThingReplyFuture<Void> postThingEvent(ThingEvent<?> event) {
 
+        final String token = generateToken();
         final String identity = event.getIdentifier().getIdentity();
-        final String reqId = generateSequenceId();
-        final String topic = format("/sys/%s/%s/thing/event/%s/post",
-                thing.getProductId(),
-                thing.getThingId(),
-                identity
-        );
+        return new ThingReplyPromise<Void>(thing, token, promise ->
+                promise.accept(messenger.call(
+                        token,
+                        format("/sys/%s/%s/thing/event/%s/post", thing.getProductId(), thing.getThingId(), identity),
+                        new MapObject()
+                                .putProperty("id", token)
+                                .putProperty("version", "1.0")
+                                .putProperty("method", format("thing.event.%s.post", identity))
+                                .enterProperty("params")
+                                /**/.putProperty("time", new Date(event.getOccurTimestampMs()))
+                                /**/.putProperty("value", event.getData())
+                                .exitProperty()))) {
 
-        try {
-            pingPong.pingInBlock(reqId, thingOpCb, () ->
-                    poster.post(topic,
-                            new MapObject()
-                                    .putProperty("id", reqId)
-                                    .putProperty("version", "1.0")
-                                    .putProperty("method", format("thing.event.%s.post", identity))
-                                    .enterProperty("params")
-                                    /**/.putProperty("time", new Date(event.getOccurTimestampMs()))
-                                    /**/.putProperty("value", event.getData())
-                                    .exitProperty()));
-            logger.info("{}/event posting, req={};identity={};", thing, reqId, event.getIdentifier());
-        } catch (Exception cause) {
-            throw new ThingException(
-                    thing,
-                    format("post event error, identity=%s;", identity),
-                    cause
-            );
-        }
+            @Override
+            public boolean tryException(Throwable cause) {
+                return super.tryException(new ThingException(
+                        thing,
+                        format("post event error, identity=%s;", identity),
+                        cause
+                ));
+            }
 
-        return reqId;
+        };
+
     }
 
     // 构造报告数据：属性
@@ -184,34 +181,32 @@ public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMes
      * 投递属性
      *
      * @param identifiers 属性标识集合
-     * @param thingOpCb   投递回调
-     * @return 请求ID
-     * @throws ThingException 投递属性失败
+     * @return future
      */
-    public String postThingProperties(Identifier[] identifiers, ThingOpCb<Void> thingOpCb) throws ThingException {
+    public ThingReplyFuture<Void> postThingProperties(Identifier[] identifiers) {
 
-        final String reqId = generateSequenceId();
-        final String topic = format("/sys/%s/%s/thing/event/property/post",
-                thing.getProductId(),
-                thing.getThingId()
-        );
+        final String token = generateToken();
+        return new ThingReplyPromise<Void>(thing, token, promise ->
+                promise.accept(messenger.call(
+                        token,
+                        format("/sys/%s/%s/thing/event/property/post", thing.getProductId(), thing.getThingId()),
+                        new MapObject()
+                                .putProperty("id", token)
+                                .putProperty("version", "1.0")
+                                .putProperty("method", "thing.event.property.post")
+                                .putProperty("params", buildingPostDataForThingComProperties(identifiers))
+                ))) {
 
-        try {
-            pingPong.pingInBlock(reqId, thingOpCb, () ->
-                    poster.post(topic, MQTT_QOS_AT_LEAST_ONCE,
-                            // 组装事件集合
-                            new MapObject()
-                                    .putProperty("id", reqId)
-                                    .putProperty("version", "1.0")
-                                    .putProperty("method", "thing.event.property.post")
-                                    .putProperty("params", buildingPostDataForThingComProperties(identifiers))
-                    ));
-            logger.info("{}/property posting, req={};identities={};", thing, reqId, identifiers);
-        } catch (Exception cause) {
-            throw new ThingException(thing, "post properties failure", cause);
-        }
+            @Override
+            public boolean tryException(Throwable cause) {
+                return super.tryException(new ThingException(
+                        thing,
+                        String.format("post properties error, identities=%s", Arrays.asList(identifiers)),
+                        cause
+                ));
+            }
 
-        return reqId;
+        };
 
     }
 

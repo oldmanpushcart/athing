@@ -7,6 +7,7 @@ import com.github.ompc.athing.aliyun.thing.container.loader.ThingComLoader;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
+import com.github.ompc.athing.standard.thing.ThingFuture;
 import com.github.ompc.athing.standard.thing.config.ThingConfigListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +35,15 @@ public class ThingConnector {
     /**
      * 连接设备平台
      *
-     * @param thingServerUrl 设备服务地址
-     * @param access         设备连接密钥
+     * @param remote 设备服务地址
+     * @param access 设备连接密钥
      * @return Connecting
      */
-    public Connecting connecting(String thingServerUrl, ThingAccess access) {
+    public Connecting connecting(String remote, ThingAccess access) {
         return new Connecting() {
 
             private final Set<ThingComLoader> thingComLoaders = new LinkedHashSet<>();
+            private MqttClientFactory mcFactory = new DefaultMqttClientFactory();
             private ThingConfigListener thingConfigListener;
             private ThingOpHook thingOpHook = thing -> {
                 throw new UnsupportedOperationException();
@@ -83,23 +85,36 @@ public class ThingConnector {
             }
 
             @Override
-            public Thing connect(ThingConnectOption thingConnOpt) throws ThingException {
+            public Connecting setMqttClientFactory(MqttClientFactory mcFactory) {
+                this.mcFactory = mcFactory;
+                return this;
+            }
+
+            @Override
+            public ThingFuture<Thing> connect(ThingConnectOption thingConnOpts) {
+
                 final ThingImpl thing = new ThingImpl(
-                        thingServerUrl,
+                        remote,
                         access,
+                        mcFactory,
                         thingConfigListener,
                         thingOpHook,
-                        thingConnOpt,
+                        thingConnOpts,
                         thingComLoaders
                 );
-                try {
+
+                return new ThingPromise<Thing>(thing, promise -> {
+
                     thing.init();
-                    thing.connect();
-                } catch (Exception cause) {
-                    thing.destroy();
-                    throw new ThingException(thing, "connect occur error!", cause);
-                }
-                return thing;
+                    promise.acceptFailure(thing.connect().onSuccess(future -> promise.trySuccess(thing)));
+
+                }) {
+                    @Override
+                    public boolean tryException(Throwable cause) {
+                        return super.tryException(new ThingException(thing, "connect occur error!", cause));
+                    }
+                };
+
             }
 
         };
@@ -157,13 +172,20 @@ public class ThingConnector {
         Connecting setThingOpHook(ThingOpHook opHook);
 
         /**
+         * 设置MQTT客户端工厂
+         *
+         * @param mcFactory MQTT客户端工厂
+         * @return this
+         */
+        Connecting setMqttClientFactory(MqttClientFactory mcFactory);
+
+        /**
          * 设备连接
          *
-         * @param thingConnOpts 设备连接选项
-         * @return 设备
-         * @throws ThingException 连接失败
+         * @param thingConnOpts 连接选项
+         * @return 连接future
          */
-        Thing connect(ThingConnectOption thingConnOpts) throws ThingException;
+        ThingFuture<Thing> connect(ThingConnectOption thingConnOpts);
 
     }
 

@@ -5,7 +5,7 @@ import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
 import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
-import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
+import com.github.ompc.athing.aliyun.thing.executor.ThingMessenger;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.thing.ThingException;
 import com.google.gson.Gson;
@@ -21,7 +21,6 @@ import java.util.Set;
 
 import static com.github.ompc.athing.aliyun.framework.Constants.FEATURE_KEY_PROPERTY_SET_REPLY_SUCCESS_IDS;
 import static com.github.ompc.athing.aliyun.framework.util.FeatureCodec.encode;
-import static com.github.ompc.athing.aliyun.thing.executor.MqttPoster.MQTT_QOS_AT_LEAST_ONCE;
 import static com.github.ompc.athing.aliyun.thing.executor.impl.AlinkReplyImpl.success;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -37,11 +36,11 @@ public class ThingPropertySetMqttExecutor implements MqttExecutor, MqttExecutor.
     private final JsonParser parser = new JsonParser();
 
     private final ThingImpl thing;
-    private final MqttPoster poster;
+    private final ThingMessenger messenger;
 
-    public ThingPropertySetMqttExecutor(ThingImpl thing, MqttPoster poster) {
+    public ThingPropertySetMqttExecutor(ThingImpl thing, ThingMessenger messenger) {
         this.thing = thing;
-        this.poster = poster;
+        this.messenger = messenger;
     }
 
     @Override
@@ -53,22 +52,20 @@ public class ThingPropertySetMqttExecutor implements MqttExecutor, MqttExecutor.
     }
 
     @Override
-    public void handle(String mqttTopic, MqttMessage mqttMessage) throws Exception {
+    public void handle(String mqttTopic, MqttMessage mqttMessage) {
 
         final JsonObject requestJsonObject = parser.parse(new String(mqttMessage.getPayload(), UTF_8)).getAsJsonObject();
-        final String reqId = requestJsonObject.get("id").getAsString();
-        final Set<String> successIds = batchPropertySet(reqId, requestJsonObject.getAsJsonObject("params"));
+        final String token = requestJsonObject.get("id").getAsString();
+        final Set<String> successIds = batchPropertySet(token, requestJsonObject.getAsJsonObject("params"));
 
-        // 回馈云平台属性设置结果
-        poster.post(mqttTopic + "_reply", MQTT_QOS_AT_LEAST_ONCE,
-                success(
-                        reqId,
-                        encode(new HashMap<String, String>() {{
-                            put(FEATURE_KEY_PROPERTY_SET_REPLY_SUCCESS_IDS, String.join(",", successIds));
-                        }})
-                ));
+        messenger.post(mqttTopic + "_reply", success(
+                token,
+                encode(new HashMap<String, String>() {{
+                    put(FEATURE_KEY_PROPERTY_SET_REPLY_SUCCESS_IDS, String.join(",", successIds));
+                }})
+        ));
 
-        logger.info("{}/property/set success, req={};identities={};", thing, reqId, successIds);
+        logger.info("{}/property/set success, token={};identities={};", thing, token, successIds);
 
     }
 

@@ -1,15 +1,15 @@
 package com.github.ompc.athing.aliyun.thing.executor.impl;
 
-import com.github.ompc.athing.standard.thing.ThingOpCb;
+import com.github.ompc.athing.standard.thing.ThingReply;
 
-public class ThingOpReplyImpl<E> implements ThingOpCb.OpReply<E> {
+public class ThingReplyImpl<T> implements ThingReply<T> {
 
     private final boolean isReplySuccess;
     private final String replyCode;
     private final String replyMessage;
-    private final E replyData;
+    private final T replyData;
 
-    public ThingOpReplyImpl(boolean isReplySuccess, String replyCode, String replyMessage, E replyData) {
+    public ThingReplyImpl(boolean isReplySuccess, String replyCode, String replyMessage, T replyData) {
         this.isReplySuccess = isReplySuccess;
         this.replyCode = replyCode;
         this.replyMessage = replyMessage;
@@ -24,8 +24,8 @@ public class ThingOpReplyImpl<E> implements ThingOpCb.OpReply<E> {
      * @param <T>   应答类型
      * @return 设备平台应答
      */
-    public static <T> ThingOpCb.OpReply<T> success(AlinkReplyImpl<?> reply, T data) {
-        return new ThingOpReplyImpl<>(
+    public static <T> ThingReply<T> success(AlinkReplyImpl<?> reply, T data) {
+        return new ThingReplyImpl<>(
                 true,
                 String.valueOf(reply.getCode()),
                 reply.getMessage(),
@@ -40,8 +40,8 @@ public class ThingOpReplyImpl<E> implements ThingOpCb.OpReply<E> {
      * @param <T>   应答类型
      * @return 设备平台应答
      */
-    public static <T> ThingOpCb.OpReply<T> failure(AlinkReplyImpl<?> reply) {
-        return new ThingOpReplyImpl<>(
+    public static <T> ThingReply<T> failure(AlinkReplyImpl<?> reply) {
+        return new ThingReplyImpl<>(
                 false,
                 String.valueOf(reply.getCode()),
                 reply.getMessage(),
@@ -56,8 +56,8 @@ public class ThingOpReplyImpl<E> implements ThingOpCb.OpReply<E> {
      * @param <T>   应答类型
      * @return 设备平台应答
      */
-    public static <T> ThingOpCb.OpReply<T> empty(AlinkReplyImpl<?> reply) {
-        return new ThingOpReplyImpl<>(
+    public static <T> ThingReply<T> empty(AlinkReplyImpl<?> reply) {
+        return new ThingReplyImpl<>(
                 reply.isOk(),
                 String.valueOf(reply.getCode()),
                 reply.getMessage(),
@@ -66,7 +66,7 @@ public class ThingOpReplyImpl<E> implements ThingOpCb.OpReply<E> {
     }
 
     @Override
-    public boolean isSuccess() {
+    public boolean isOk() {
         return isReplySuccess;
     }
 
@@ -81,7 +81,7 @@ public class ThingOpReplyImpl<E> implements ThingOpCb.OpReply<E> {
     }
 
     @Override
-    public E getData() {
+    public T getData() {
         return replyData;
     }
 }

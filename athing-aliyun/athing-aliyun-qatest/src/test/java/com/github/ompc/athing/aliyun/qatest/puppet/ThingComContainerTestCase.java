@@ -18,9 +18,11 @@ import java.util.HashSet;
 public class ThingComContainerTestCase {
 
     private ThingComContainer buildingThingComContainer(ThingCom... thingComponents) throws ThingException {
-        return new ThingComContainerImpl("PRODUCT_ID", "THING_ID", new HashSet<ThingComLoader>() {{
-            add((productId, thingId) -> thingComponents);
-        }});
+        return new ThingComContainerImpl("PRODUCT_ID", "THING_ID") {{
+            loading(new HashSet<ThingComLoader>() {{
+                add((productId, thingId) -> thingComponents);
+            }});
+        }};
     }
 
     @Test(expected = ThingException.class)

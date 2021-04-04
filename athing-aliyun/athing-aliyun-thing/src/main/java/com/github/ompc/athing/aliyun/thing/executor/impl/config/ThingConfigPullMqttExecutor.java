@@ -3,13 +3,16 @@ package com.github.ompc.athing.aliyun.thing.executor.impl.config;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
+import com.github.ompc.athing.aliyun.thing.ThingPromise;
+import com.github.ompc.athing.aliyun.thing.ThingReplyPromise;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
-import com.github.ompc.athing.aliyun.thing.executor.MqttPoster;
-import com.github.ompc.athing.aliyun.thing.executor.ThingOpPingPong;
+import com.github.ompc.athing.aliyun.thing.executor.ThingMessenger;
 import com.github.ompc.athing.aliyun.thing.executor.impl.AlinkReplyImpl;
-import com.github.ompc.athing.aliyun.thing.executor.impl.ThingOpReplyImpl;
+import com.github.ompc.athing.aliyun.thing.executor.impl.ThingReplyImpl;
 import com.github.ompc.athing.standard.thing.ThingException;
-import com.github.ompc.athing.standard.thing.ThingOpCb;
+import com.github.ompc.athing.standard.thing.ThingFuture;
+import com.github.ompc.athing.standard.thing.ThingReply;
+import com.github.ompc.athing.standard.thing.ThingReplyFuture;
 import com.github.ompc.athing.standard.thing.config.ThingConfig;
 import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
 import com.github.ompc.athing.standard.thing.config.ThingConfigListener;
@@ -20,8 +23,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.github.ompc.athing.aliyun.thing.executor.MqttPoster.MQTT_QOS_AT_LEAST_ONCE;
-import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateSequenceId;
+import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateToken;
 import static com.github.ompc.athing.standard.thing.config.ThingConfig.ConfigScope.PRODUCT;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -33,15 +35,13 @@ public class ThingConfigPullMqttExecutor implements MqttExecutor, MqttExecutor.M
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ThingImpl thing;
-    private final MqttPoster poster;
-    private final ThingOpPingPong pingPong;
+    private final ThingMessenger messenger;
 
     private final Gson gson = GsonFactory.getGson();
 
-    public ThingConfigPullMqttExecutor(ThingImpl thing, MqttPoster poster, ThingOpPingPong pingPong) {
+    public ThingConfigPullMqttExecutor(ThingImpl thing, ThingMessenger messenger) {
         this.thing = thing;
-        this.poster = poster;
-        this.pingPong = pingPong;
+        this.messenger = messenger;
     }
 
     @Override
@@ -60,26 +60,26 @@ public class ThingConfigPullMqttExecutor implements MqttExecutor, MqttExecutor.M
                 new TypeToken<AlinkReplyImpl<ThingConfigPullData>>() {
                 }.getType()
         );
-        final String reqId = reply.getReqId();
-        final ThingOpCb<ThingConfig> thingOpCb = pingPong.pong(reqId);
 
+        final String token = reply.getReqId();
         logger.debug("{}/config/pull receive reply, req={};code={};message={};",
-                thing, reqId, reply.getCode(), reply.getMessage());
+                thing, token, reply.getCode(), reply.getMessage());
 
-        // 回调不存在，说明已经提前被移除
-        if (null == thingOpCb) {
-            logger.warn("{}/config/pull receive reply, but callback is not found, req={}", thing, reqId);
+        // promise不存在，说明已经提前被移除
+        final ThingPromise<ThingReply<ThingConfig>> promise = messenger.reply(token);
+        if (null == promise) {
+            logger.warn("{}/config/pull receive reply, but promise is not found, token={}", thing, token);
             return;
         }
 
         // 通知失败
         if (!reply.isOk()) {
-            thingOpCb.callback(reqId, ThingOpReplyImpl.failure(reply));
+            promise.trySuccess(ThingReplyImpl.failure(reply));
             return;
         }
 
         // 通知成功
-        thingOpCb.callback(reqId, ThingOpReplyImpl.success(
+        promise.trySuccess(ThingReplyImpl.success(
                 reply,
                 new ThingConfigImpl(PRODUCT, thing, thing.getThingConnOpt(),
                         reply.getData().configId,
@@ -89,61 +89,60 @@ public class ThingConfigPullMqttExecutor implements MqttExecutor, MqttExecutor.M
         ));
     }
 
-    private String pullThingConfig(ThingOpCb<ThingConfig> thingOpCb) throws ThingException {
-        final String reqId = generateSequenceId();
-        final String topic = format("/sys/%s/%s/thing/config/get", thing.getProductId(), thing.getThingId());
-
-        try {
-            pingPong.pingInBlock(reqId, thingOpCb, () ->
-                    poster.post(topic, MQTT_QOS_AT_LEAST_ONCE,
-                            new MapObject()
-                                    .putProperty("id", reqId)
-                                    .putProperty("version", "1.0")
-                                    .putProperty("method", "thing.config.get")
-                                    .enterProperty("params")
-                                    /**/.putProperty("configScope", PRODUCT)
-                                    /**/.putProperty("getType", "file")
-                                    .exitProperty()));
-            logger.info("{}/config/pull posted, req={};", thing, reqId);
-        } catch (Exception cause) {
-            throw new ThingException(thing, "pull config error!", cause);
-        }
-        return reqId;
-    }
-
     /**
      * 更新设备配置
-     *
-     * @param thingOpCb 回调
-     * @throws ThingException 操作失败
      */
-    public String updateThingConfig(ThingOpCb<ThingConfigApply> thingOpCb) throws ThingException {
+    public ThingReplyFuture<ThingConfigApply> updateThingConfig() {
+        final String token = generateToken();
+        return new ThingReplyPromise<>(thing, token, promise -> {
 
-        final ThingConfigListener listener = thing.getThingConfigListener();
 
-        // 如果没有设置配置监听器，则不需要更新
-        if (null == listener) {
-            throw new ThingException(thing, "thing is not configurable!");
-        }
+            final String topic = format("/sys/%s/%s/thing/config/get", thing.getProductId(), thing.getThingId());
 
-        return pullThingConfig((id, reply) ->
-                thingOpCb.callback(id, new ThingOpReplyImpl<>(reply.isSuccess(), reply.getCode(), reply.getMessage(),
-                        !reply.isSuccess() ? null : new ThingConfigApply() {
-                            @Override
-                            public ThingConfig getThingConfig() {
-                                return reply.getData();
+            final ThingFuture<ThingReply<ThingConfig>> pullF = messenger.call(token, topic, new MapObject()
+                    .putProperty("id", token)
+                    .putProperty("version", "1.0")
+                    .putProperty("method", "thing.config.get")
+                    .enterProperty("params")
+                    /**/.putProperty("configScope", PRODUCT)
+                    /**/.putProperty("getType", "file")
+                    .exitProperty()
+            );
+
+            pullF.onSuccess(future -> {
+
+                final ThingReply<ThingConfig> reply = future.getSuccess();
+                if (!reply.isOk()) {
+                    promise.trySuccess(new ThingReplyImpl<>(reply.isOk(), reply.getCode(), reply.getMessage(), null));
+                } else {
+                    promise.trySuccess(new ThingReplyImpl<>(reply.isOk(), reply.getCode(), reply.getMessage(), new ThingConfigApply() {
+                        @Override
+                        public ThingConfig getThingConfig() {
+                            return reply.getData();
+                        }
+
+                        @Override
+                        public void apply() throws ThingException {
+
+                            final ThingConfigListener listener = thing.getThingConfigListener();
+                            if (null == listener) {
+                                throw new ThingException(thing, "thing is not configurable!");
                             }
 
-                            @Override
-                            public void apply() throws ThingException {
-                                try {
-                                    listener.configThing(thing, getThingConfig());
-                                } catch (Exception cause) {
-                                    throw new ThingException(thing, "apply config failure!", cause);
-                                }
+                            try {
+                                listener.configThing(thing, getThingConfig());
+                            } catch (Exception cause) {
+                                throw new ThingException(thing, "apply config failure!", cause);
                             }
                         }
-                )));
+                    }));
+                }
+
+            });
+
+            promise.acceptFailure(pullF);
+
+        });
 
     }
 

@@ -11,6 +11,11 @@ public class ThingConnectOption {
     private long connectTimeoutMs = 1000 * 30L;
 
     /**
+     * 平台应答超时(毫秒)
+     */
+    private long replyTimeoutMs = 1000 * 30L;
+
+    /**
      * 设备心跳维持间隔(毫秒)
      */
     private long keepAliveIntervalMs = 1000 * 90L;
@@ -46,6 +51,14 @@ public class ThingConnectOption {
 
     public void setConnectTimeoutMs(long connectTimeoutMs) {
         this.connectTimeoutMs = connectTimeoutMs;
+    }
+
+    public long getReplyTimeoutMs() {
+        return replyTimeoutMs;
+    }
+
+    public void setReplyTimeoutMs(long replyTimeoutMs) {
+        this.replyTimeoutMs = replyTimeoutMs;
     }
 
     public long getKeepAliveIntervalMs() {

@@ -13,46 +13,39 @@ public interface ThingOp {
     /**
      * 报告设备事件
      *
-     * @param event     事件
-     * @param thingOpCb 回调
-     * @return 请求ID
-     * @throws ThingException 操作失败
+     * @param event 事件
+     * @return 设备应答Future
      */
-    String postThingEvent(ThingEvent<?> event, ThingOpCb<Void> thingOpCb) throws ThingException;
+    ThingReplyFuture<Void> postThingEvent(ThingEvent<?> event);
 
     /**
      * 报告设备属性
      *
      * @param identifiers 设备属性标识
-     * @param thingOpCb   回调
-     * @return 请求ID
-     * @throws ThingException 操作失败
+     * @return 设备应答Future
      */
-    String postThingProperties(Identifier[] identifiers, ThingOpCb<Void> thingOpCb) throws ThingException;
+    ThingReplyFuture<Void> postThingProperties(Identifier[] identifiers);
 
     /**
      * 报告模块信息
      *
-     * @param module    模块
-     * @param thingOpCb 回调
-     * @return 请求ID
-     * @throws ThingException 操作失败
+     * @param module 模块
+     * @return 设备应答Future
      */
-    String reportModule(Modular module, ThingOpCb<Void> thingOpCb) throws ThingException;
+    ThingTokenFuture<Void> reportModule(Modular module);
 
     /**
      * 更新设备配置
      *
-     * @param thingOpCb 回调
-     * @throws ThingException 操作失败
+     * @return 设备应答Future
      */
-    String updateThingConfig(ThingOpCb<ThingConfigApply> thingOpCb) throws ThingException;
+    ThingReplyFuture<ThingConfigApply> updateThingConfig();
 
     /**
      * 重启设备
      *
-     * @throws ThingException 操作失败
+     * @return 设备应答Future
      */
-    void reboot() throws ThingException;
+    ThingFuture<Void> reboot();
 
 }

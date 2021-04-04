@@ -29,14 +29,13 @@ public class ThingComContainerImpl implements ThingComContainer {
     private final Set<ThingCom> thingComponents = new LinkedHashSet<>();
     private final Map<String, ThComStub> thComStubMap = new HashMap<>();
 
-    public ThingComContainerImpl(String productId, String thingId, Set<ThingComLoader> loaders) throws ThingException {
+    public ThingComContainerImpl(String productId, String thingId) {
         this.productId = productId;
         this.thingId = thingId;
-        loading(loaders);
     }
 
     // 容器加载组件
-    private void loading(Set<ThingComLoader> thingComLoaders) throws ThingException {
+    protected void loading(Set<ThingComLoader> thingComLoaders) throws ThingException {
 
         try {
 
