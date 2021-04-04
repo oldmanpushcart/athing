@@ -58,14 +58,15 @@ public class ThingPropertySetMqttExecutor implements MqttExecutor, MqttExecutor.
         final String token = requestJsonObject.get("id").getAsString();
         final Set<String> successIds = batchPropertySet(token, requestJsonObject.getAsJsonObject("params"));
 
-        messenger.post(mqttTopic + "_reply", success(
-                token,
+        final String topic = mqttTopic + "_reply";
+        final Object message = success(token,
                 encode(new HashMap<String, String>() {{
                     put(FEATURE_KEY_PROPERTY_SET_REPLY_SUCCESS_IDS, String.join(",", successIds));
                 }})
-        ));
+        );
 
-        logger.info("{}/property/set success, token={};identities={};", thing, token, successIds);
+        messenger.post(topic, message)
+                .onSuccess(future -> logger.info("{}/property/set success, token={};identities={};", thing, token, successIds));
 
     }
 

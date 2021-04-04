@@ -128,7 +128,7 @@ public class ThingTimer {
         lock.lock();
         try {
             running = false;
-            new ArrayList<>(timers).forEach(timer -> timer.promise.tryCancel(true));
+            new ArrayList<>(timers).forEach(timer -> timer.promise.tryCancel());
             waiter.signal();
         } finally {
             lock.unlock();
@@ -137,11 +137,12 @@ public class ThingTimer {
 
     /**
      * 添加定时任务
+     * <p>任务在指定的时间点执行</p>
      *
      * @param time 时间点
      * @param unit 时间单位
      * @param task 任务
-     * @return 设备定时任务Future
+     * @return 定时任务Future
      */
     public ThingFuture<Void> task(long time, TimeUnit unit, Task task) {
 
@@ -169,6 +170,15 @@ public class ThingTimer {
         });
     }
 
+    /**
+     * 添加定时任务
+     * <p>任务在指定的时间间隔后执行</p>
+     *
+     * @param time 时间间隔值
+     * @param unit 时间间隔单位
+     * @param task 定时任务
+     * @return 定时任务future
+     */
     public ThingFuture<Void> after(long time, TimeUnit unit, Task task) {
         return task(System.currentTimeMillis() + unit.toMillis(time), TimeUnit.MILLISECONDS, task);
     }

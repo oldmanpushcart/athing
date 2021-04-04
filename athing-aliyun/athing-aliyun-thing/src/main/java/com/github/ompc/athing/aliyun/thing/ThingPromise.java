@@ -11,29 +11,49 @@ import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * 设备Promise
+ *
+ * @param <V> 类型
+ */
 public class ThingPromise<V> implements ThingFuture<V> {
 
+    private final static AtomicInteger sequencer = new AtomicInteger(100000);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
     private final AtomicReference<StateResult> resultRef = new AtomicReference<>();
     private final Collection<ThingFutureListener<V>> listeners = new ArrayList<>();
     private final ReentrantLock lock = new ReentrantLock();
     private final Condition waiter = lock.newCondition();
+    private final ThingPromise<V> _this;
     private final String _string;
 
     private volatile boolean notified;
 
+    /**
+     * 设备Promise
+     *
+     * @param thing 设备
+     */
     public ThingPromise(Thing thing) {
         this(thing, null);
     }
 
+    /**
+     * 设备Promise
+     *
+     * @param thing       设备
+     * @param initializer 初始化
+     */
     public ThingPromise(Thing thing, Initializer<V> initializer) {
         this.thing = thing;
-        this._string = String.format("%s/promise", thing);
+        this._this = this;
+        this._string = String.format("%s/promise/%d", thing, sequencer.getAndIncrement());
         if (null != initializer) {
             try {
                 initializer.initialize(this);
@@ -93,16 +113,37 @@ public class ThingPromise<V> implements ThingFuture<V> {
         return _isFailure(resultRef.get());
     }
 
-    public boolean tryCancel(boolean mayInterruptIfRunning) {
+    @Override
+    public boolean isDone() {
+        return _isDone(resultRef.get());
+    }
+
+    /**
+     * 尝试取消
+     *
+     * @return TRUE | FALSE
+     */
+    public boolean tryCancel() {
         final StateResult result = new StateResult(State.CANCEL, null);
         if (resultRef.compareAndSet(null, result)) {
             wakeup();
             notifyListeners();
             return true;
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("{} try cancel but failure, state already: {} ", _this, resultRef.get().state);
+        }
+
         return false;
     }
 
+    /**
+     * 尝试异常
+     *
+     * @param cause 异常原因
+     * @return TRUE | FALSE
+     */
     public boolean tryException(Throwable cause) {
         final StateResult result = new StateResult(State.EXCEPTION, cause);
         if (resultRef.compareAndSet(null, result)) {
@@ -110,9 +151,26 @@ public class ThingPromise<V> implements ThingFuture<V> {
             notifyListeners();
             return true;
         }
+
+        // TRACE
+        if (logger.isTraceEnabled()) {
+            logger.trace("{} try exception but failure, state already: {}", _this, resultRef.get().state, cause);
+        }
+
+        // DEBUG
+        else if (logger.isDebugEnabled()) {
+            logger.debug("{} try exception but failure, state already: {} ", _this, resultRef.get().state);
+        }
+
         return false;
     }
 
+    /**
+     * 尝试成功
+     *
+     * @param value 成功值
+     * @return TRUE | FALSE
+     */
     public boolean trySuccess(V value) {
         final StateResult result = new StateResult(State.SUCCESS, value);
         if (resultRef.compareAndSet(null, result)) {
@@ -120,9 +178,17 @@ public class ThingPromise<V> implements ThingFuture<V> {
             notifyListeners();
             return true;
         }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("{} try success but failure, state already: {} ", _this, resultRef.get().state);
+        }
+
         return false;
     }
 
+    /**
+     * 唤醒所有等待的线程
+     */
     private void wakeup() {
         lock.lock();
         try {
@@ -132,36 +198,110 @@ public class ThingPromise<V> implements ThingFuture<V> {
         }
     }
 
+
+    /**
+     * 当前Promise接受目标Future的全部结果，
+     * 当目标Future完成时会联动当前Promise也跟随着尝试完成，并且设置为同样的结果
+     *
+     * @param acceptor 目标Future
+     * @return this
+     */
     public ThingPromise<V> accept(ThingFuture<V> acceptor) {
         acceptor.onDone(future -> {
+
+            // 接受异常
             if (future.isException()) {
-                tryException(future.getException());
-            } else if (future.isCancelled()) {
-                tryCancel(true);
-            } else if (future.isSuccess()) {
-                trySuccess(future.getSuccess());
+                if (tryException(future.getException())) {
+                    logger.debug("{} accept {} exception", _this, acceptor);
+                }
+            }
+
+            // 接受取消
+            else if (future.isCancelled()) {
+                if (tryCancel()) {
+                    logger.debug("{} accept {} cancel", _this, acceptor);
+                }
+            }
+
+            // 接受成功
+            else if (future.isSuccess()) {
+                if (trySuccess(future.getSuccess())) {
+                    logger.debug("{} accept {} success", _this, acceptor);
+                }
             }
         });
         return this;
     }
 
+    /**
+     * 当前Promise接受目标Future的全部失败，
+     * 当目标Future失败时会联动当前Promise也跟随着尝试失败，并且设置为同样的失败原因
+     *
+     * @param acceptor 目标Future
+     * @return this
+     */
     public ThingPromise<V> acceptFailure(ThingFuture<?> acceptor) {
         acceptor.onFailure(future -> {
+
+            // 接受异常
             if (future.isException()) {
-                tryException(future.getException());
-            } else if (future.isCancelled()) {
-                tryCancel(true);
+                if (tryException(future.getException())) {
+                    logger.debug("{} accept {} exception", _this, acceptor);
+                }
+            }
+
+            // 接受取消
+            else if (future.isCancelled()) {
+                if (tryCancel()) {
+                    logger.debug("{} accept {} cancel", _this, acceptor);
+                }
             }
         });
         return this;
     }
 
+    /**
+     * 返回自己，本身无意义
+     *
+     * @return this
+     */
     public ThingPromise<V> self() {
         return this;
     }
 
-    public ThingPromise<V> setCancel(boolean mayInterruptIfRunning) {
-        if (!tryCancel(mayInterruptIfRunning)) {
+    /**
+     * 设置取消，如果设置失败则抛出异常
+     *
+     * @return this
+     */
+    public ThingPromise<V> setCancel() {
+        if (!tryCancel()) {
+            throw new IllegalStateException("state already: " + resultRef.get().state);
+        }
+        return this;
+    }
+
+    /**
+     * 设置异常，如果设置失败则抛出异常
+     *
+     * @param cause 异常原因
+     * @return this
+     */
+    public ThingPromise<V> setException(Throwable cause) {
+        if (!tryException(cause)) {
+            throw new IllegalStateException("state already: " + resultRef.get().state);
+        }
+        return this;
+    }
+
+    /**
+     * 设置成功，如果设置失败则抛出异常
+     *
+     * @param value 结果值
+     * @return this
+     */
+    public ThingPromise<V> setSuccess(V value) {
+        if (!trySuccess(value)) {
             throw new IllegalStateException("state already: " + resultRef.get().state);
         }
         return this;
@@ -173,25 +313,11 @@ public class ThingPromise<V> implements ThingFuture<V> {
         return _isException(result) ? (Throwable) result.value : null;
     }
 
-    public ThingPromise<V> setException(Throwable cause) {
-        if (!tryException(cause)) {
-            throw new IllegalStateException("state already: " + resultRef.get().state);
-        }
-        return this;
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public V getSuccess() {
         final StateResult result = resultRef.get();
         return _isSuccess(result) ? (V) result.value : null;
-    }
-
-    public ThingPromise<V> setSuccess(V value) {
-        if (!trySuccess(value)) {
-            throw new IllegalStateException("state already: " + resultRef.get().state);
-        }
-        return this;
     }
 
     @Override
@@ -217,35 +343,10 @@ public class ThingPromise<V> implements ThingFuture<V> {
 
         // 自行通知
         if (self) {
-            _notifyListener(listener);
+            notifyListener(listener);
         }
 
         return this;
-    }
-
-    @Override
-    public ThingFuture<V> onDone(ThingFutureListener.OnDone<V> listener) {
-        return appendListener(listener);
-    }
-
-    @Override
-    public ThingFuture<V> onSuccess(ThingFutureListener.OnSuccess<V> listener) {
-        return appendListener(listener);
-    }
-
-    @Override
-    public ThingFuture<V> onFailure(ThingFutureListener.OnFailure<V> listener) {
-        return appendListener(listener);
-    }
-
-    @Override
-    public ThingFuture<V> onCancelled(ThingFutureListener.OnCancelled<V> listener) {
-        return appendListener(listener);
-    }
-
-    @Override
-    public ThingFuture<V> onException(ThingFutureListener.OnException<V> listener) {
-        return appendListener(listener);
     }
 
     @Override
@@ -272,15 +373,22 @@ public class ThingPromise<V> implements ThingFuture<V> {
         }
     }
 
-    private void _notifyListener(ThingFutureListener<V> listener) {
+    /**
+     * 通知单个监听器
+     *
+     * @param listener 监听器
+     */
+    private void notifyListener(ThingFutureListener<V> listener) {
         try {
-            listener.onDone(this);
+            listener.onDone(_this);
         } catch (Throwable cause) {
-            logger.warn("{} notify listener error!", this);
+            logger.warn("{} notify listener error!", _this);
         }
     }
 
-    // 通知所有监听器
+    /**
+     * 通知所有监听器
+     */
     private void notifyListeners() {
 
         if (notified) {
@@ -301,19 +409,13 @@ public class ThingPromise<V> implements ThingFuture<V> {
         }
 
         // 进行整体通知
-        notifies.forEach(this::_notifyListener);
+        notifies.forEach(this::notifyListener);
 
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        return tryCancel(mayInterruptIfRunning);
-    }
-
-
-    @Override
-    public boolean isDone() {
-        return _isDone(resultRef.get());
+        return tryCancel();
     }
 
     @SuppressWarnings("unchecked")

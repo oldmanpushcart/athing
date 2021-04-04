@@ -43,25 +43,38 @@ public class ThingModularReportPostMqttExecutor implements MqttExecutor {
     public ThingTokenFuture<Void> reportModule(Modular module) {
 
         final String token = generateToken();
-        return new ThingTokenPromise<>(thing, token, promise -> {
+        return new ThingTokenPromise<Void>(thing, token, promise -> {
 
             final String topic = format("/ota/device/inform/%s/%s", thing.getProductId(), thing.getThingId());
-
-            promise.accept(messenger.post(topic, new MapObject()
+            final Object message = new MapObject()
                     .putProperty("id", token)
                     .enterProperty("params")
                     /**/.putProperty("module", module.getModuleId())
                     /**/.putProperty("version", module.getModuleVersion())
-                    .exitProperty()));
+                    .exitProperty();
 
-            logger.info("{}/module report version, req={};module={};version={};",
-                    thing,
-                    token,
-                    module.getModuleId(),
-                    module.getModuleVersion()
-            );
+            promise.accept(messenger.post(topic, message))
+                    .onSuccess(future ->
+                            logger.info("{}/module report version, req={};module={};version={};",
+                                    thing,
+                                    token,
+                                    module.getModuleId(),
+                                    module.getModuleVersion()
+                            )
+                    );
 
-        });
+        }) {
+
+            @Override
+            public boolean tryException(Throwable cause) {
+                return super.tryException(new ThingException(
+                        thing,
+                        String.format("report modular: %s error!", module.getModuleId()),
+                        cause
+                ));
+            }
+
+        };
 
     }
 

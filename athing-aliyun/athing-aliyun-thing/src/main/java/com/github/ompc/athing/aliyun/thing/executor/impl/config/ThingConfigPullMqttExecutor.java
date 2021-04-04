@@ -98,16 +98,17 @@ public class ThingConfigPullMqttExecutor implements MqttExecutor, MqttExecutor.M
 
 
             final String topic = format("/sys/%s/%s/thing/config/get", thing.getProductId(), thing.getThingId());
-
-            final ThingFuture<ThingReply<ThingConfig>> pullF = messenger.call(token, topic, new MapObject()
+            final Object message = new MapObject()
                     .putProperty("id", token)
                     .putProperty("version", "1.0")
                     .putProperty("method", "thing.config.get")
                     .enterProperty("params")
                     /**/.putProperty("configScope", PRODUCT)
                     /**/.putProperty("getType", "file")
-                    .exitProperty()
-            );
+                    .exitProperty();
+
+            final ThingFuture<ThingReply<ThingConfig>> pullF = messenger.call(token, topic, message);
+            promise.acceptFailure(pullF);
 
             pullF.onSuccess(future -> {
 
@@ -139,8 +140,6 @@ public class ThingConfigPullMqttExecutor implements MqttExecutor, MqttExecutor.M
                 }
 
             });
-
-            promise.acceptFailure(pullF);
 
         });
 

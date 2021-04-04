@@ -130,25 +130,22 @@ public class ThingModularUpgradePushMqttExecutor implements MqttExecutor, MqttEx
      * 更新进度
      */
     private void upgradeProcessing(String reqId, String moduleId, int step, String desc) {
-        try {
 
-            // 发送进度消息
-            messenger.post(format("/ota/device/progress/%s/%s", thing.getProductId(), thing.getThingId()),
-                    new MapObject()
-                            .putProperty("id", generateToken())
-                            .enterProperty("params")
-                            /**/.putProperty("step", step)
-                            /**/.putProperty("desc", desc)
-                            /**/.putProperty("module", moduleId)
-                            .exitProperty());
+        final String topic = format("/ota/device/progress/%s/%s", thing.getProductId(), thing.getThingId());
+        final Object message = new MapObject()
+                .putProperty("id", generateToken())
+                .enterProperty("params")
+                /**/.putProperty("step", step)
+                /**/.putProperty("desc", desc)
+                /**/.putProperty("module", moduleId)
+                .exitProperty();
 
-            logger.debug("{}/module/upgrade/push processing, req={};module={};step={};",
-                    thing, reqId, moduleId, step);
-
-        } catch (Exception cause) {
-            logger.warn("{}/module/upgrade/push processing error, req={};module={};step={};",
-                    thing, reqId, moduleId, step, cause);
-        }
+        messenger.post(topic, message)
+                .onSuccess(future -> logger.debug("{}/module/upgrade/push processing, req={};module={};step={};",
+                        thing, reqId, moduleId, step))
+                .onException(future -> logger.warn("{}/module/upgrade/push processing error, req={};module={};step={};",
+                        thing, reqId, moduleId, step, future.getException())
+                );
     }
 
     /**

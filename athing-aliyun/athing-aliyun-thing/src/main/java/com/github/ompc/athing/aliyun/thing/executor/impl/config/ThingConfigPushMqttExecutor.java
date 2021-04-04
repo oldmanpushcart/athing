@@ -80,17 +80,17 @@ public class ThingConfigPushMqttExecutor implements MqttExecutor, MqttExecutor.M
             return;
         }
 
+        final Object message = success(token, FeatureCodec.encode(
+                new HashMap<String, String>() {{
+                    put(FEATURE_KEY_PUSH_CONFIG_REPLY_CONFIG_ID, version);
+                    put(FEATURE_KEY_PUSH_CONFIG_REPLY_SIGN, configCHS);
+                }}
+        ));
+
         // 应答配置结果
-        messenger.post(
-                replyTopic,
-                success(token, FeatureCodec.encode(
-                        new HashMap<String, String>() {{
-                            put(FEATURE_KEY_PUSH_CONFIG_REPLY_CONFIG_ID, version);
-                            put(FEATURE_KEY_PUSH_CONFIG_REPLY_SIGN, configCHS);
-                        }}
-                ))
-        );
-        logger.info("{}/config/push success. token={};scope={};version={};", thing, token, PRODUCT, version);
+        messenger.post(replyTopic, message)
+                .onSuccess(future -> logger.info("{}/config/push success. token={};scope={};version={};",
+                        thing, token, PRODUCT, version));
 
     }
 

@@ -62,15 +62,15 @@ public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMes
         final String message = new String(mqttMessage.getPayload(), UTF_8);
 
         // 解析alink应答数据
-        final AlinkReplyImpl<Map<String, String>> reply = gson.fromJson(message, tokenType);
+        final AlinkReplyImpl<Map<String, String>> aReply = gson.fromJson(message, tokenType);
 
         // 请求ID
-        final String token = reply.getReqId();
+        final String token = aReply.getReqId();
         logger.debug("{}/post reply received, token={};topic={};message={};", thing, token, mqttTopic, message);
 
         // 拿到应答的promise
-        final ThingPromise<ThingReply<?>> replyF = messenger.reply(token);
-        if (null == replyF) {
+        final ThingPromise<ThingReply<?>> replyP = messenger.reply(token);
+        if (null == replyP) {
             logger.warn("{}/post reply received, but promise is not found, token={};topic={};",
                     thing,
                     token,
@@ -81,17 +81,17 @@ public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMes
 
         // 属性上报的应答需要做特殊日志处理
         if (mqttTopic.endsWith("/thing/event/property/post_reply")
-                && null != reply.getData()
-                && !reply.getData().isEmpty()) {
+                && null != aReply.getData()
+                && !aReply.getData().isEmpty()) {
             logger.warn("{}/property/post reply, but some properties failure, req={};properties={};",
                     thing,
                     token,
-                    reply.getData()
+                    aReply.getData()
             );
         }
 
         // 应答
-        replyF.trySuccess(ThingReplyImpl.empty(reply));
+        replyP.trySuccess(ThingReplyImpl.empty(aReply));
 
     }
 

@@ -145,22 +145,15 @@ public class ThingImpl extends ThingComContainerImpl implements Thing {
                 // 订阅promise
                 final ThingPromise<Void> subP = new ThingPromise<Void>(_this, promise -> {
 
-                    // 异步订阅
-                    executor.execute(() -> {
-                        try {
-                            subscribe(subTrips, new IMqttActionListener() {
-                                @Override
-                                public void onSuccess(IMqttToken asyncActionToken) {
-                                    promise.trySuccess(null);
-                                }
+                    subscribe(subTrips, new IMqttActionListener() {
+                        @Override
+                        public void onSuccess(IMqttToken asyncActionToken) {
+                            promise.trySuccess(null);
+                        }
 
-                                @Override
-                                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                                    promise.tryException(exception);
-                                }
-                            });
-                        } catch (Throwable cause) {
-                            promise.tryException(cause);
+                        @Override
+                        public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                            promise.tryException(exception);
                         }
                     });
 

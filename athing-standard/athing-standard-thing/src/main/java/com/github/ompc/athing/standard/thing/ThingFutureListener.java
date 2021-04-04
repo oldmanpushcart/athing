@@ -15,19 +15,35 @@ public interface ThingFutureListener<V> {
      */
     void onDone(ThingFuture<V> future) throws Exception;
 
+    /**
+     * 成功监听器
+     *
+     * @param <V> 类型
+     */
     interface OnSuccess<V> extends ThingFutureListener<V> {
 
         @Override
-        default void onDone(ThingFuture<V> future) {
+        default void onDone(ThingFuture<V> future) throws Exception {
             if (future.isSuccess()) {
                 onSuccess(future);
             }
         }
 
-        void onSuccess(ThingFuture<V> future);
+        /**
+         * 成功
+         *
+         * @param future 设备future
+         * @throws Exception 监听失败
+         */
+        void onSuccess(ThingFuture<V> future) throws Exception;
 
     }
 
+    /**
+     * 失败监听器
+     *
+     * @param <V> 类型
+     */
     interface OnFailure<V> extends ThingFutureListener<V> {
 
         @Override
@@ -37,10 +53,21 @@ public interface ThingFutureListener<V> {
             }
         }
 
+        /**
+         * 失败
+         *
+         * @param future 设备future
+         * @throws Exception 监听失败
+         */
         void onFailure(ThingFuture<V> future) throws Exception;
 
     }
 
+    /**
+     * 取消监听器
+     *
+     * @param <V> 类型
+     */
     interface OnCancelled<V> extends ThingFutureListener<V> {
 
         @Override
@@ -50,10 +77,21 @@ public interface ThingFutureListener<V> {
             }
         }
 
+        /**
+         * 取消
+         *
+         * @param future 设备future
+         * @throws Exception 监听失败
+         */
         void onCancelled(ThingFuture<V> future) throws Exception;
 
     }
 
+    /**
+     * 异常监听器
+     *
+     * @param <V> 类型
+     */
     interface OnException<V> extends ThingFutureListener<V> {
         @Override
         default void onDone(ThingFuture<V> future) throws Exception {
@@ -62,10 +100,21 @@ public interface ThingFutureListener<V> {
             }
         }
 
+        /**
+         * 异常
+         *
+         * @param future 设备future
+         * @throws Exception 监听失败
+         */
         void onException(ThingFuture<V> future) throws Exception;
 
     }
 
+    /**
+     * 完成监听器
+     *
+     * @param <V> 类型
+     */
     interface OnDone<V> extends ThingFutureListener<V> {
 
 
