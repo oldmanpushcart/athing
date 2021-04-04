@@ -257,7 +257,7 @@ public class ThingPromise<V> implements ThingFuture<V> {
     }
 
     @Override
-    public ThingFuture<V> sync() throws InterruptedException {
+    public ThingFuture<V> waitingForDone() throws InterruptedException {
         if (isDone()) {
             return this;
         }

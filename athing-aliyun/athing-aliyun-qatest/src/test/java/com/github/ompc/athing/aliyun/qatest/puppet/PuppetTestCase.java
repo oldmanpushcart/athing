@@ -53,7 +53,7 @@ public class PuppetTestCase extends PuppetSupport {
                 }
         );
 
-        future.sync();
+        future.waitingForDone();
         if (future.isException()) {
             future.getException().printStackTrace();
         }
@@ -76,7 +76,7 @@ public class PuppetTestCase extends PuppetSupport {
                         Identifier.toIdentifier("not_exist_component", "not_exist_property")
                 }
         );
-        future.sync();
+        future.waitingForDone();
         Assert.assertTrue(future.isException());
         Assert.assertTrue(future.getException() instanceof ThingException);
     }
@@ -89,7 +89,7 @@ public class PuppetTestCase extends PuppetSupport {
                 )
         );
 
-        future.sync();
+        future.waitingForDone();
         Assert.assertTrue(future.isSuccess());
 
         final ThingPostEventMessage message = waitingForPostMessageByReqId(future.getToken());
@@ -120,7 +120,7 @@ public class PuppetTestCase extends PuppetSupport {
     public void test$thing_update_config$success() throws ThingException, InterruptedException {
 
         final ThingReplyFuture<ThingConfigApply> future = tPuppet.getThingOp().updateThingConfig();
-        future.sync();
+        future.waitingForDone();
         Assert.assertTrue(future.isSuccess());
         Assert.assertTrue(future.getSuccess().isOk());
         future.getSuccess().getData().apply();
@@ -133,7 +133,7 @@ public class PuppetTestCase extends PuppetSupport {
         final ResourceThingCom resourceThingCom = tPuppet.getThingComponent(ResourceThingCom.class, true);
         final ThingTokenFuture<Void> future = tPuppet.getThingOp().reportModule(resourceThingCom);
 
-        future.sync();
+        future.waitingForDone();
         Assert.assertTrue(future.isSuccess());
 
         // spin for module upgrade
@@ -203,7 +203,7 @@ public class PuppetTestCase extends PuppetSupport {
                 storesInfoId
         });
 
-        future.sync();
+        future.waitingForDone();
         Assert.assertTrue(future.isSuccess());
         Assert.assertTrue(future.getSuccess().isOk());
 

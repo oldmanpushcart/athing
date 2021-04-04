@@ -121,7 +121,7 @@ public class PuppetSupport {
                 .setThingConfigListener(qaThingConfigListener)
                 .setThingOpHook(thing -> logger.info("{} require reboot", thing))
                 .connect(new ThingConnectOption())
-                .sync()
+                .waitingForDone()
                 .getSuccess();
     }
 
