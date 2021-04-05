@@ -203,4 +203,13 @@ public interface ThingFuture<V> extends Future<V> {
      */
     ThingFuture<V> waitingForDone() throws InterruptedException;
 
+//    /**
+//     * 因为整个框架基于异步驱动，异步的线程是交由多方打理，并不在本Future控制范围内。
+//     * 所以这里禁止从Future入口进行取消
+//     */
+//    @Override
+//    default boolean cancel(boolean mayInterruptIfRunning) {
+//        throw new UnsupportedOperationException();
+//    }
+
 }

@@ -12,7 +12,6 @@ import com.github.ompc.athing.standard.thing.boot.Modular;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateToken;
 import static java.lang.String.format;
 
 /**
@@ -37,12 +36,12 @@ public class ThingModularReportPostMqttExecutor implements MqttExecutor {
     /**
      * 报告设备模块信息
      *
+     * @param token  令牌
      * @param module 模块
      * @return future
      */
-    public ThingTokenFuture<Void> reportModule(Modular module) {
+    public ThingTokenFuture<Void> reportModule(String token, Modular module) {
 
-        final String token = generateToken();
         return new ThingTokenPromise<Void>(thing, token, promise -> {
 
             final String topic = format("/ota/device/inform/%s/%s", thing.getProductId(), thing.getThingId());

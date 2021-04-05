@@ -22,6 +22,8 @@ import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 
 import java.util.concurrent.ExecutorService;
 
+import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateToken;
+
 /**
  * 设备操作实现
  */
@@ -57,22 +59,34 @@ class ThingOpImpl implements ThingOp {
 
     @Override
     public ThingReplyFuture<Void> postThingEvent(ThingEvent<?> event) {
-        return thingPostMqttExecutor.postThingEvent(event);
+        final String token = generateToken();
+        return new ThingReplyPromise<>(thing, token, promise ->
+                executor.execute(() ->
+                        promise.self().accept(thingPostMqttExecutor.postThingEvent(token, event))));
     }
 
     @Override
     public ThingReplyFuture<Void> postThingProperties(Identifier[] identifiers) {
-        return thingPostMqttExecutor.postThingProperties(identifiers);
+        final String token = generateToken();
+        return new ThingReplyPromise<>(thing, token, promise ->
+                executor.execute(() ->
+                        promise.accept(thingPostMqttExecutor.postThingProperties(token, identifiers))));
     }
 
     @Override
     public ThingTokenFuture<Void> reportModule(Modular module) {
-        return thingModularReportPostMqttExecutor.reportModule(module);
+        final String token = generateToken();
+        return new ThingTokenPromise<>(thing, token, promise ->
+                executor.execute(() ->
+                        promise.accept(thingModularReportPostMqttExecutor.reportModule(token, module))));
     }
 
     @Override
     public ThingReplyFuture<ThingConfigApply> updateThingConfig() {
-        return thingConfigPullMqttExecutor.updateThingConfig();
+        final String token = generateToken();
+        return new ThingReplyPromise<>(thing, token, promise ->
+                executor.execute(() ->
+                        promise.accept(thingConfigPullMqttExecutor.updateThingConfig(token))));
     }
 
     @Override

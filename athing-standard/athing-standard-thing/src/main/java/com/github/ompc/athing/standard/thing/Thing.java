@@ -29,8 +29,15 @@ public interface Thing extends ThingComContainer {
     /**
      * 销毁设备
      *
-     * @throws Exception 销毁失败
+     * @return 销毁Future
      */
-    void destroy() throws Exception;
+    ThingFuture<Thing> destroy();
+
+    /**
+     * 获取销毁Future
+     *
+     * @return 销毁Future
+     */
+    ThingFuture<Thing> getDestroyFuture();
 
 }

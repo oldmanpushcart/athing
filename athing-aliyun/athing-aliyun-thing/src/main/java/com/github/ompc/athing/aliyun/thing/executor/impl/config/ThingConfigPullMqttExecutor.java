@@ -23,7 +23,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateToken;
 import static com.github.ompc.athing.standard.thing.config.ThingConfig.ConfigScope.PRODUCT;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -91,11 +90,11 @@ public class ThingConfigPullMqttExecutor implements MqttExecutor, MqttExecutor.M
 
     /**
      * 更新设备配置
+     *
+     * @param token 令牌
      */
-    public ThingReplyFuture<ThingConfigApply> updateThingConfig() {
-        final String token = generateToken();
+    public ThingReplyFuture<ThingConfigApply> updateThingConfig(String token) {
         return new ThingReplyPromise<>(thing, token, promise -> {
-
 
             final String topic = format("/sys/%s/%s/thing/config/get", thing.getProductId(), thing.getThingId());
             final Object message = new MapObject()

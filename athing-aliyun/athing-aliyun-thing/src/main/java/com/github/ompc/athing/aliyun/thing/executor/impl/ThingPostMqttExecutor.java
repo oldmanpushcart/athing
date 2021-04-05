@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
-import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateToken;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -98,12 +97,12 @@ public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMes
     /**
      * 报告设备事件
      *
+     * @param token 令牌
      * @param event 事件
      * @return future
      */
-    public ThingReplyFuture<Void> postThingEvent(ThingEvent<?> event) {
+    public ThingReplyFuture<Void> postThingEvent(String token, ThingEvent<?> event) {
 
-        final String token = generateToken();
         final String identity = event.getIdentifier().getIdentity();
         return new ThingReplyPromise<Void>(thing, token, promise ->
                 promise.accept(messenger.call(
@@ -180,12 +179,11 @@ public class ThingPostMqttExecutor implements MqttExecutor, MqttExecutor.MqttMes
     /**
      * 投递属性
      *
+     * @param token       令牌
      * @param identifiers 属性标识集合
      * @return future
      */
-    public ThingReplyFuture<Void> postThingProperties(Identifier[] identifiers) {
-
-        final String token = generateToken();
+    public ThingReplyFuture<Void> postThingProperties(String token, Identifier[] identifiers) {
         return new ThingReplyPromise<Void>(thing, token, promise ->
                 promise.accept(messenger.call(
                         token,

@@ -37,6 +37,9 @@ public class PuppetTestCase extends PuppetSupport {
 
     @Test
     public void test$thing_post_properties$success() throws InterruptedException {
+
+        Thread.sleep(1000 * 60 * 5);
+
         final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");
         final Identifier memoryInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "memory_info");
         final Identifier networksInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "network_info");

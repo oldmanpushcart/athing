@@ -4,6 +4,8 @@ import com.github.ompc.athing.aliyun.framework.util.IOUtils;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComBootLoader.OnBoot;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComJarBootLoader;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComLoader;
+import com.github.ompc.athing.aliyun.thing.strategy.ThingStrategy;
+import com.github.ompc.athing.aliyun.thing.strategy.ThingStrategyManager;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
@@ -43,6 +45,7 @@ public class ThingConnector {
         return new Connecting() {
 
             private final Set<ThingComLoader> thingComLoaders = new LinkedHashSet<>();
+            private final ThingStrategyManager thingStrategyManager = new ThingStrategyManager();
             private MqttClientFactory mcFactory = new DefaultMqttClientFactory();
             private ThingConfigListener thingConfigListener;
             private ThingOpHook thingOpHook = thing -> {
@@ -69,6 +72,12 @@ public class ThingConnector {
                 if (null != loaders) {
                     thingComLoaders.addAll(Arrays.asList(loaders));
                 }
+                return this;
+            }
+
+            @Override
+            public Connecting strategy(ThingStrategy strategy) {
+                thingStrategyManager.register(strategy);
                 return this;
             }
 
@@ -100,19 +109,22 @@ public class ThingConnector {
                         thingConfigListener,
                         thingOpHook,
                         thingConnOpts,
-                        thingComLoaders
+                        thingComLoaders,
+                        thingStrategyManager
                 );
 
                 return new ThingPromise<Thing>(thing, promise -> {
 
-                    thing.init();
-                    promise.acceptFailure(thing.connect().onSuccess(future -> promise.trySuccess(thing)));
+                    promise.accept(thing.connect().onSuccess(future -> promise.trySuccess(thing)))
+                            .onFailure(future -> thing.destroy());
 
                 }) {
+
                     @Override
                     public boolean tryException(Throwable cause) {
                         return super.tryException(new ThingException(thing, "connect occur error!", cause));
                     }
+
                 };
 
             }
@@ -154,6 +166,14 @@ public class ThingConnector {
          * @return this
          */
         Connecting load(ThingComLoader... loaders);
+
+        /**
+         * 添加设备策略
+         *
+         * @param strategy 设备策略
+         * @return this
+         */
+        Connecting strategy(ThingStrategy strategy);
 
         /**
          * 设置设备配置监听器

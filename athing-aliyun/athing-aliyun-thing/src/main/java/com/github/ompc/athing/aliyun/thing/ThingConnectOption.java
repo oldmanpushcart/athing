@@ -18,7 +18,7 @@ public class ThingConnectOption {
     /**
      * 设备心跳维持间隔(毫秒)
      */
-    private long keepAliveIntervalMs = 1000 * 90L;
+    private long keepAliveIntervalMs = 1000 * 30L;
 
     /**
      * 获取配置超时(毫秒)
@@ -33,7 +33,7 @@ public class ThingConnectOption {
     /**
      * 重连时间间隔(毫秒)
      */
-    private long reconnectTimeIntervalMs = 500;
+    private long reconnectTimeIntervalMs = 1000 * 5L;
 
     /**
      * 获取连接区域
