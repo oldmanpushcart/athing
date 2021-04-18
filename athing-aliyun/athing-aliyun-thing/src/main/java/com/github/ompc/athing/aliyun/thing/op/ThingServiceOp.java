@@ -44,7 +44,19 @@ public class ThingServiceOp {
         // 订阅异步服务调用消息
         client.syncSubscribe(
                 format("/sys/%s/%s/thing/service/+", thing.getProductId(), thing.getThingId()),
-                (topic, message) -> service(false, topic, message)
+                (topic, message) -> {
+
+                    /*
+                     * FIX:
+                     * 阿里云MQTT实现的BUG，文档上说明_reply只有发布权限没有订阅，但仍然还会推送_reply消息回来，
+                     * 真的是无语，只能在这里进行一次过滤，就是可怜了客户端多收了一次消息
+                     */
+                    if (topic.endsWith("_reply")) {
+                        return;
+                    }
+
+                    service(false, topic, message);
+                }
         );
 
     }

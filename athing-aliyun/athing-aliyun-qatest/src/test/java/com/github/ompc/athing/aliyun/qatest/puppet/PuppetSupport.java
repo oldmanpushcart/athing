@@ -23,6 +23,8 @@ import com.github.ompc.athing.standard.platform.message.ThingMessageListener;
 import com.github.ompc.athing.standard.platform.message.ThingPostMessage;
 import com.github.ompc.athing.standard.platform.message.ThingReplyMessage;
 import com.github.ompc.athing.standard.thing.Thing;
+import com.github.ompc.athing.standard.thing.ThingFuture;
+import com.github.ompc.athing.standard.thing.ThingFutureListener;
 import com.github.ompc.athing.standard.thing.config.ThingConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -112,6 +114,25 @@ public class PuppetSupport {
 
     // ------------------------------------- THING ------------------------------------
 
+    private static void reconnect(Thing thing) {
+        if (thing.isDestroyed()) {
+            return;
+        }
+
+        logger.warn("{} reconnect!", thing);
+
+        thing.getThingOp().connect()
+                .onFailure(connF -> {
+                    reconnect(thing);
+                })
+                .onSuccess(connF -> {
+                    connF.getSuccess().getDisconnectFuture().onDone(disconnectF -> {
+                        reconnect(thing);
+                    });
+                });
+
+    }
+
     private static Thing initPuppetThing() throws Exception {
         final Thing thing = new ThingBoot(new URI(THING_SERVER_URL), THING_ACCESS)
                 .executor(Executors.newFixedThreadPool(20))
@@ -122,7 +143,9 @@ public class PuppetSupport {
                         }
                 )
                 .boot();
-        thing.getThingOp().connect().sync();
+
+        reconnect(thing);
+
         return thing;
     }
 

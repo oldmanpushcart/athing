@@ -166,8 +166,6 @@ public class ThComMeta {
                 new ThCom() {
 
                     private final String id = String.format("anonymous$%s", anonymousSeq.getAndIncrement());
-                    private final String name = "anonymous component";
-                    private final String desc = "anonymous component";
 
                     @Override
                     public Class<? extends Annotation> annotationType() {
@@ -181,12 +179,12 @@ public class ThComMeta {
 
                     @Override
                     public String name() {
-                        return name;
+                        return "anonymous component";
                     }
 
                     @Override
                     public String desc() {
-                        return desc;
+                        return "anonymous component";
                     }
                 },
                 thingComType,

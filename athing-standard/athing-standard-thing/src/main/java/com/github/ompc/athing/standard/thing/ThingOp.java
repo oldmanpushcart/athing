@@ -31,20 +31,6 @@ public interface ThingOp {
      *
      * @return 连接凭证
      */
-    ThingFuture<Void> connect();
-
-    /**
-     * MQTT客户端断开连接
-     *
-     * @return 断开凭证
-     */
-    ThingFuture<Void> disconnect();
-
-    /**
-     * 判断MQTT客户端是否已连接
-     *
-     * @return TRUE | FALSE
-     */
-    boolean isConnected();
+    ThingFuture<ThingConnection> connect();
 
 }

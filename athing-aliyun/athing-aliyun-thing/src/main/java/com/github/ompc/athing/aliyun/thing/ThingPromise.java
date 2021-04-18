@@ -30,7 +30,7 @@ public class ThingPromise<V> extends NotifiablePromise<V> {
      */
     public ThingPromise(Thing thing, Executor executor, Fulfill<V> fulfill) {
         super(thing, executor);
-        this._string = String.format("%s/promised/%d", thing, sequencer.getAndIncrement());
+        this._string = String.format("%s/promise/%d", thing, sequencer.getAndIncrement());
         fulfill(executor, fulfill);
     }
 

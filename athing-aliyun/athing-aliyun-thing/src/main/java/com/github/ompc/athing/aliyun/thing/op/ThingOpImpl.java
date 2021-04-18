@@ -8,8 +8,6 @@ import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttClient;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingEvent;
 import com.github.ompc.athing.standard.thing.*;
-import com.github.ompc.athing.standard.thing.boot.Modular;
-import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +17,8 @@ import org.slf4j.LoggerFactory;
 public class ThingOpImpl implements ThingOp {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Thing thing;
+    private final ThingExecutor executor;
     private final ThingMqttClient client;
     private final String _string;
 
@@ -29,6 +29,8 @@ public class ThingOpImpl implements ThingOp {
 
 
     public ThingOpImpl(ThingBootOption option, Thing thing, ThingComContainer container, ThingExecutor executor, ThingMqttClient client) throws ThingException {
+        this.thing = thing;
+        this.executor = executor;
         this.client = client;
         this._string = String.format("%s/op", thing);
         this.timer = new ThingTimer(thing, executor);
@@ -55,18 +57,11 @@ public class ThingOpImpl implements ThingOp {
     }
 
     @Override
-    public ThingFuture<Void> connect() {
-        return client.connect();
-    }
-
-    @Override
-    public ThingFuture<Void> disconnect() {
-        return client.disconnect();
-    }
-
-    @Override
-    public boolean isConnected() {
-        return client.isConnected();
+    public ThingFuture<ThingConnection> connect() {
+        return new ThingPromise<>(thing, executor, promise ->
+                client.connect()
+                        .onFailure(promise::acceptFail)
+                        .onSuccess(connF -> promise.trySuccess(connF.getSuccess())));
     }
 
     /**

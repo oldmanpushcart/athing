@@ -5,6 +5,7 @@ import com.github.ompc.athing.aliyun.thing.ThingBootOption;
 import com.github.ompc.athing.aliyun.thing.ThingExecutor;
 import com.github.ompc.athing.aliyun.thing.ThingPromise;
 import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttClient;
+import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttConnection;
 import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttMessage;
 import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttMessageHandler;
 import com.github.ompc.athing.standard.thing.Thing;
@@ -32,6 +33,17 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
     private final ThingExecutor executor;
     private final IMqttAsyncClient pahoClient;
     private final String _string;
+    private final ThingMqttClientImplByPaho _this = this;
+
+    /**
+     * 关闭承诺
+     */
+    private volatile ThingPromise<Void> disconnectP;
+
+    /**
+     * 销毁标记
+     */
+    private volatile boolean isDestroyed = false;
 
     /**
      * 订阅三元组集合
@@ -60,8 +72,19 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
             // 主题自动订阅
             add(new AutoSubTripPahoCallback(null, pahoClient, trips));
 
-            // 断线自动重连
-            add(new AutoConnectPahoCallback(option, thing, null, pahoClient));
+            // 断线手动重连
+            add(new PahoCallbackAdapter() {
+                @Override
+                public void connectionLost(Throwable cause) {
+                    logger.warn("{} is lost connection!", _this, cause);
+                    synchronized (_this) {
+                        if (null != disconnectP) {
+                            disconnectP.trySuccess();
+                        }
+                    }
+                }
+            });
+
 
         }}));
 
@@ -86,7 +109,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
                     .onFailure(future -> logger.debug("{} subscribe mqtt-message failure! topic={};", ThingMqttClientImplByPaho.this, express, future.getException()));
 
             // 如果已连接，则直接开始订阅
-            if (isConnected()) {
+            if (_isConnected()) {
                 pahoClient.subscribe(trip.getExpress(), trip.getQos(), new Object(), new MqttActionListenerImpl(promise), trip.getListener());
             }
 
@@ -124,8 +147,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
     }
 
 
-    @Override
-    public ThingFuture<Void> connect() {
+    private ThingFuture<Void> _connect() {
         return new ThingPromise<>(thing, executor, promise -> {
 
             // 连接后续动作
@@ -140,8 +162,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
     }
 
-    @Override
-    public ThingFuture<Void> disconnect() {
+    private ThingFuture<Void> _disconnect() {
         return new ThingPromise<>(thing, executor, promise -> {
 
             // 断开后续动作
@@ -155,10 +176,110 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
         });
     }
 
-    @Override
-    public boolean isConnected() {
+    private boolean _isConnected() {
         return pahoClient.isConnected();
     }
+
+    @Override
+    public ThingFuture<ThingMqttConnection> connect() {
+        return new ThingPromise<>(thing, executor, connectP -> {
+
+            // 检查客户端是否已被销毁
+            synchronized (_this) {
+                if (isDestroyed) {
+                    throw new IllegalStateException("already destroyed!");
+                }
+            }
+
+            _connect().onFailure(connectP::acceptFail)
+                    .onSuccess(connF -> {
+
+                        // 断开承诺
+                        final ThingPromise<Void> disconnectP = new ThingPromise<>(thing, executor, promise ->
+                                promise.onSuccess(future -> {
+
+                                    // 释放断开成功诺
+                                    synchronized (_this) {
+                                        _this.disconnectP = null;
+                                    }
+
+                                }));
+
+                        // 锁定断开承诺
+                        synchronized (_this) {
+
+                            // 如果客户端已被销毁，则需要强制断开连接
+                            if (isDestroyed) {
+                                _disconnect().awaitUninterruptible();
+                                connectP.tryException(new IllegalStateException("already destroyed!"));
+                                return;
+                            }
+
+                            // 客户端正常，进行锁定操作
+                            _this.disconnectP = disconnectP;
+
+                        }
+
+                        // 连接成功，返回当前连接
+                        connectP.trySuccess(new ThingMqttConnection() {
+
+                            @Override
+                            public ThingFuture<Void> disconnect() {
+
+                                // 判断当前连接是否已关闭
+                                if (disconnectP.isDone()) {
+                                    return new ThingPromise<>(thing, executor, promise ->
+                                            promise.tryException(new IllegalAccessException("connection is disconnected!")));
+                                }
+
+                                // 判断当前连接是否还有效
+                                if (_this.disconnectP != disconnectP) {
+                                    return new ThingPromise<>(thing, executor, promise ->
+                                            promise.tryException(new IllegalAccessException("connection is invalid!")));
+                                }
+
+                                // 一切状态正常，进入关闭程序
+                                return _disconnect().onSuccess(disF -> disconnectP.trySuccess());
+                            }
+
+                            @Override
+                            public ThingFuture<Void> getDisconnectFuture() {
+                                return disconnectP;
+                            }
+
+                        });
+
+                    });
+        });
+    }
+
+    @Override
+    public void destroy() {
+        synchronized (_this) {
+
+            // 如已被销毁，立即返回
+            if (isDestroyed) {
+                return;
+            }
+
+            // 标记已被销毁
+            isDestroyed = true;
+
+            // 如有活跃的连接，则需关闭当前连接
+            if (_isConnected()) {
+                _disconnect().awaitUninterruptible().onDone(future -> {
+
+                    // 如关闭承诺被锁定，则需要通知关闭承诺完成
+                    if (null != disconnectP) {
+                        disconnectP.trySuccess();
+                    }
+
+                });
+            }
+
+        }
+    }
+
 
     /**
      * MQTT动作监听器

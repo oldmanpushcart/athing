@@ -35,6 +35,7 @@ public class ThingImpl implements Thing {
     private final ThingExecutor executor;
     private final ThingMqttClient client;
     private final ThingOp op;
+    private final String _string;
 
     private volatile boolean destroyed = false;
 
@@ -45,11 +46,17 @@ public class ThingImpl implements Thing {
         this.remote = remote;
         this.access = access;
         this.option = option;
+        this._string = String.format("/%s/%s", access.getProductId(), access.getThingId());
 
         this.executor = new ThingExecutor(this, executor);
         this.container = new ThingComContainer(this);
         this.client = new ThingMqttClientImplByPaho(remote, access, option, this, this.executor);
         this.op = new ThingOpImpl(option, this, container, this.executor, this.client);
+    }
+
+    @Override
+    public String toString() {
+        return _string;
     }
 
     /**
@@ -107,13 +114,11 @@ public class ThingImpl implements Thing {
             return;
         }
 
+        // 标记为已销毁
+        destroyed = true;
+
         // 断开连接
-        if (client.isConnected()) {
-            final ThingFuture<Void> disconnectF = client.disconnect().awaitUninterruptible();
-            if (disconnectF.isFailure()) {
-                logger.warn("{} disconnect failure by destroy!", client, disconnectF.getException());
-            }
-        }
+        client.destroy();
 
         // 销毁设备操作
         if (op instanceof ThingOpImpl) {
@@ -123,8 +128,6 @@ public class ThingImpl implements Thing {
         // 销毁组件容器
         container.destroy();
 
-        // 标记为已销毁
-        destroyed = true;
         logger.info("{} is destroyed!", this);
     }
 
