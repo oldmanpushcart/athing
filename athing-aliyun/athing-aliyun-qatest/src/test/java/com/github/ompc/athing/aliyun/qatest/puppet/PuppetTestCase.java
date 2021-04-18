@@ -38,15 +38,13 @@ public class PuppetTestCase extends PuppetSupport {
     @Test
     public void test$thing_post_properties$success() throws InterruptedException {
 
-        Thread.sleep(1000 * 60 * 5);
-
         final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");
         final Identifier memoryInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "memory_info");
         final Identifier networksInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "network_info");
         final Identifier powersInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "power_info");
         final Identifier storesInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "store_info");
 
-        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postThingProperties(
+        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postProperties(
                 new Identifier[]{
                         cpuInfoId,
                         memoryInfoId,
@@ -56,7 +54,7 @@ public class PuppetTestCase extends PuppetSupport {
                 }
         );
 
-        future.waitingForDone();
+        future.await();
         if (future.isException()) {
             future.getException().printStackTrace();
         }
@@ -74,25 +72,25 @@ public class PuppetTestCase extends PuppetSupport {
 
     @Test
     public void test$thing_post_properties$failure$property_not_provide() throws InterruptedException {
-        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postThingProperties(
+        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postProperties(
                 new Identifier[]{
                         Identifier.toIdentifier("not_exist_component", "not_exist_property")
                 }
         );
-        future.waitingForDone();
+        future.await();
         Assert.assertTrue(future.isException());
         Assert.assertTrue(future.getException() instanceof ThingException);
     }
 
     @Test
     public void test$thing_post_event$success() throws InterruptedException {
-        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postThingEvent(new ThingEvent<>(
+        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postEvent(new ThingEvent<>(
                         Identifier.toIdentifier(EchoThingCom.THING_COM_ID, "echo_event"),
                         new EchoThingCom.Echo("HELLO!")
                 )
         );
 
-        future.waitingForDone();
+        future.await();
         Assert.assertTrue(future.isSuccess());
 
         final ThingPostEventMessage message = waitingForPostMessageByReqId(future.getToken());
@@ -120,39 +118,6 @@ public class PuppetTestCase extends PuppetSupport {
     }
 
     @Test
-    public void test$thing_update_config$success() throws ThingException, InterruptedException {
-
-        final ThingReplyFuture<ThingConfigApply> future = tPuppet.getThingOp().updateThingConfig();
-        future.waitingForDone();
-        Assert.assertTrue(future.isSuccess());
-        Assert.assertTrue(future.getSuccess().isOk());
-        future.getSuccess().getData().apply();
-        final ThingConfig cfg = waitingForReceiveThingConfig();
-        Assert.assertNotNull(cfg);
-    }
-
-    @Test
-    public void test$thing_upgrade_module$success() throws ThingException, InterruptedException, TimeoutException {
-        final ResourceThingCom resourceThingCom = tPuppet.getThingComponent(ResourceThingCom.class, true);
-        final ThingTokenFuture<Void> future = tPuppet.getThingOp().reportModule(resourceThingCom);
-
-        future.waitingForDone();
-        Assert.assertTrue(future.isSuccess());
-
-        // spin for module upgrade
-        final long start = System.currentTimeMillis();
-        while (!resourceThingCom.getModuleVersion().equals("1.0.1")) {
-
-            //noinspection BusyWait
-            Thread.sleep(500L);
-            if ((System.currentTimeMillis() - start) > 1000L * 60 * 3) {
-                throw new TimeoutException();
-            }
-        }
-
-    }
-
-    @Test
     public void test$platform_batch_set_properties$success() throws Exception {
 
         final Identifier brightId = Identifier.toIdentifier(LightThingCom.THING_COM_ID, "bright");
@@ -162,7 +127,7 @@ public class PuppetTestCase extends PuppetSupport {
         propertyValueMap.put(stateId, LightThingCom.State.ON);
 
         // reset
-        final LightThingCom lightCom = tPuppet.getThingComponent(LightThingCom.class, true);
+        final LightThingCom lightCom = tPuppet.getThingCom(LightThingCom.class, true);
         lightCom.setBright(0);
         lightCom.setState(LightThingCom.State.OFF);
 
@@ -174,8 +139,7 @@ public class PuppetTestCase extends PuppetSupport {
 
         // check
         final ThingReplyPropertySetMessage message = waitingForReplyMessageByReqId(tpReturn.getReqId());
-        Assert.assertTrue(message.getSuccessIdentities().contains(brightId.getIdentity()));
-        Assert.assertTrue(message.getSuccessIdentities().contains(stateId.getIdentity()));
+        Assert.assertEquals(200, message.getCode());
         Assert.assertEquals(100, lightCom.getBright());
         Assert.assertEquals(LightThingCom.State.ON, lightCom.getState());
     }
@@ -198,7 +162,7 @@ public class PuppetTestCase extends PuppetSupport {
         final Identifier powersInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "power_info");
         final Identifier storesInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "store_info");
 
-        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postThingProperties(new Identifier[]{
+        final ThingReplyFuture<Void> future = tPuppet.getThingOp().postProperties(new Identifier[]{
                 cpuInfoId,
                 memoryInfoId,
                 networksInfoId,
@@ -206,7 +170,7 @@ public class PuppetTestCase extends PuppetSupport {
                 storesInfoId
         });
 
-        future.waitingForDone();
+        future.await();
         Assert.assertTrue(future.isSuccess());
         Assert.assertTrue(future.getSuccess().isOk());
 

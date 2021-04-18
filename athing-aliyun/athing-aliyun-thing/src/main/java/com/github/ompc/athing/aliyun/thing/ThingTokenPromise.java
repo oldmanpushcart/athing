@@ -3,6 +3,8 @@ package com.github.ompc.athing.aliyun.thing;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingTokenFuture;
 
+import java.util.concurrent.Executor;
+
 /**
  * 设备令牌Promise
  *
@@ -16,22 +18,23 @@ public class ThingTokenPromise<V> extends ThingPromise<V> implements ThingTokenF
     /**
      * 设备令牌Promise
      *
-     * @param thing 设备
-     * @param token 令牌
+     * @param thing    设备
+     * @param token    令牌
+     * @param executor 通知执行线程池
      */
-    public ThingTokenPromise(Thing thing, String token) {
-        this(thing, token, null);
+    public ThingTokenPromise(Thing thing, String token, Executor executor) {
+        this(thing, token, executor, null);
     }
 
     /**
      * 设备令牌Promise
      *
-     * @param thing       设备
-     * @param token       令牌
-     * @param initializer 初始化器
+     * @param thing    设备
+     * @param token    令牌
+     * @param executor 通知执行线程池
      */
-    public ThingTokenPromise(Thing thing, String token, Initializer<V> initializer) {
-        super(thing, initializer);
+    public ThingTokenPromise(Thing thing, String token, Executor executor, Fulfill<V> fulfill) {
+        super(thing, executor, fulfill);
         this.token = token;
         this._string = String.format("%s?type=token&token=%s", super.toString(), token);
     }

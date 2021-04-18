@@ -16,7 +16,7 @@ public interface ThingOp {
      * @param event 事件
      * @return 设备应答Future
      */
-    ThingReplyFuture<Void> postThingEvent(ThingEvent<?> event);
+    ThingReplyFuture<Void> postEvent(ThingEvent<?> event);
 
     /**
      * 报告设备属性
@@ -24,28 +24,27 @@ public interface ThingOp {
      * @param identifiers 设备属性标识
      * @return 设备应答Future
      */
-    ThingReplyFuture<Void> postThingProperties(Identifier[] identifiers);
+    ThingReplyFuture<Void> postProperties(Identifier[] identifiers);
 
     /**
-     * 报告模块信息
+     * MQTT客户端连接
      *
-     * @param module 模块
-     * @return 设备应答Future
+     * @return 连接凭证
      */
-    ThingTokenFuture<Void> reportModule(Modular module);
+    ThingFuture<Void> connect();
 
     /**
-     * 更新设备配置
+     * MQTT客户端断开连接
      *
-     * @return 设备应答Future
+     * @return 断开凭证
      */
-    ThingReplyFuture<ThingConfigApply> updateThingConfig();
+    ThingFuture<Void> disconnect();
 
     /**
-     * 重启设备
+     * 判断MQTT客户端是否已连接
      *
-     * @return 设备应答Future
+     * @return TRUE | FALSE
      */
-    ThingFuture<Void> reboot();
+    boolean isConnected();
 
 }

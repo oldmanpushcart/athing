@@ -71,24 +71,13 @@ public class ThingPlatformBuilder {
             }
 
             @Override
-            public Build consumer(String regionId, ThingPlatformAccess access, String connectionUrl, String group, ThingMessageListener listener) {
+            public Build consumer(ThingMessageConsumerBuilder builder) {
                 return () -> {
-                    consumer = ThingMessageConsumer.createThingMessageConsumer(
-                            access,
-                            connectionUrl,
-                            group,
-                            thProductStubMap.values().stream().collect(Collectors.toMap(
-                                    ThProductStub::getProductId,
-                                    ThProductStub::getThProductMeta,
-                                    (a, b) -> a
-                            )),
-                            listener
-                    );
-                    logger.info("thing-platform:/{} connecting consumer={} to server={}",
-                            Constants.THING_PLATFORM_CODE,
-                            consumer,
-                            connectionUrl
-                    );
+                    consumer = builder.build(thProductStubMap.values().stream().collect(Collectors.toMap(
+                            ThProductStub::getProductId,
+                            ThProductStub::getThProductMeta,
+                            (a, b) -> a
+                    )));
                     return _this.build();
                 };
             }
@@ -120,18 +109,10 @@ public class ThingPlatformBuilder {
 
         /**
          * 设备平台构建：构建设备消息消费
-         * <p>
-         * 一个
-         * </p>
          *
-         * @param regionId      消息服务器区域ID
-         * @param access        消息服务器访问密钥
-         * @param connectionUrl 消息服务器URL
-         * @param group         消息组
-         * @param listener      消息监听器
          * @return IBuildingForThingPlatform.this
          */
-        Build consumer(String regionId, ThingPlatformAccess access, String connectionUrl, String group, ThingMessageListener listener);
+        Build consumer(ThingMessageConsumerBuilder builder);
 
     }
 

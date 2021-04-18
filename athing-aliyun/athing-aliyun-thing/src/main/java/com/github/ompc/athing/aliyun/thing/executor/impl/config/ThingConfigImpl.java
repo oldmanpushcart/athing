@@ -1,10 +1,11 @@
 package com.github.ompc.athing.aliyun.thing.executor.impl.config;
 
-import com.github.ompc.athing.aliyun.thing.ThingConnectOption;
+import com.github.ompc.athing.aliyun.thing.ThingBootOption;
 import com.github.ompc.athing.aliyun.thing.util.HttpUtils;
 import com.github.ompc.athing.aliyun.thing.util.StringUtils;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
+import com.github.ompc.athing.standard.thing.ThingFuture;
 import com.github.ompc.athing.standard.thing.config.ThingConfig;
 
 import java.io.IOException;
@@ -19,7 +20,7 @@ class ThingConfigImpl implements ThingConfig {
     private final Thing thing;
     private final ConfigScope scope;
     private final String version;
-    private final ThingConnectOption options;
+    private final ThingBootOption options;
     private final String configFileURL;
     private final String checksum;
     private final AtomicReference<String> configRef = new AtomicReference<>();
@@ -34,7 +35,7 @@ class ThingConfigImpl implements ThingConfig {
      * @param configFileURL 配置下载地址
      * @param checksum      配置校验码
      */
-    public ThingConfigImpl(ConfigScope scope, Thing thing, ThingConnectOption options, String version, String configFileURL, String checksum) {
+    public ThingConfigImpl(ConfigScope scope, Thing thing, ThingBootOption options, String version, String configFileURL, String checksum) {
         this.scope = scope;
         this.version = version;
         this.thing = thing;
@@ -54,18 +55,19 @@ class ThingConfigImpl implements ThingConfig {
     }
 
     @Override
-    public String getConfig() throws ThingException {
-        if (null != configRef.get()) {
-            return configRef.get();
-        }
-        synchronized (configRef) {
-            if (null != configRef.get()) {
-                return configRef.get();
-            }
-            final String config;
-            configRef.set(config = checksum(download()));
-            return config;
-        }
+    public ThingFuture<String> getConfig() {
+//        if (null != configRef.get()) {
+//            return configRef.get();
+//        }
+//        synchronized (configRef) {
+//            if (null != configRef.get()) {
+//                return configRef.get();
+//            }
+//            final String config;
+//            configRef.set(config = checksum(download()));
+//            return config;
+//        }
+        return null;
     }
 
     private String download() throws ThingException {

@@ -2,6 +2,7 @@ package com.github.ompc.athing.standard.thing.boot;
 
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.thing.ThingException;
+import com.github.ompc.athing.standard.thing.ThingFuture;
 
 import java.io.File;
 
@@ -58,10 +59,9 @@ public interface Modular extends ThingCom {
         /**
          * 获取升级文件
          *
-         * @return 升级文件
-         * @throws ThingException 获取升级文件失败
+         * @return 获取文件凭证
          */
-        File getUpgradeFile() throws ThingException;
+        ThingFuture<File> getUpgradeFile();
 
     }
 

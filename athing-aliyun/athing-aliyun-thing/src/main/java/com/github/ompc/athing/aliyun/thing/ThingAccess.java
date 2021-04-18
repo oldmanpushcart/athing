@@ -1,7 +1,9 @@
 package com.github.ompc.athing.aliyun.thing;
 
+import java.util.Objects;
+
 /**
- * 设备连接密钥
+ * 设备接入
  */
 public class ThingAccess {
 
@@ -17,9 +19,9 @@ public class ThingAccess {
      * @param secret    设备密码
      */
     public ThingAccess(String productId, String thingId, String secret) {
-        this.productId = productId;
-        this.thingId = thingId;
-        this.secret = secret;
+        this.productId = Objects.requireNonNull(productId, "productId");
+        this.thingId = Objects.requireNonNull(thingId, "thingId");
+        this.secret = Objects.requireNonNull(secret, "secret");
     }
 
     public String getProductId() {

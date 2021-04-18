@@ -22,13 +22,21 @@ public class ThComMetaHelper {
      * @return 组件元数据集合
      */
     public static Map<String, ThComMeta> getThComMetaMap(Class<? extends ThingCom> clazz) {
-        return getThComInterfaces(clazz).stream()
+        final Map<String, ThComMeta> metaMap = getThComInterfaces(clazz).stream()
                 .map(ThComMetaFactory::make)
                 .collect(Collectors.toMap(
                         ThComMeta::getThingComId,
                         meta -> meta,
                         (a, b) -> a
                 ));
+
+        // 如果没有找到元数据，则默认给他生成一个匿名组件
+        if (metaMap.isEmpty()) {
+            final ThComMeta meta = ThComMeta.anonymous(clazz);
+            metaMap.put(meta.getThingComId(), meta);
+        }
+
+        return metaMap;
     }
 
     /**

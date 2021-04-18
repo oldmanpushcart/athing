@@ -1,5 +1,7 @@
 package com.github.ompc.athing.aliyun.thing.util;
 
+import com.github.ompc.athing.standard.thing.Thing;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -49,6 +51,10 @@ public class StringUtils {
         } catch (NoSuchAlgorithmException cause) {
             throw new RuntimeException(cause);
         }
+    }
+
+    public static String path(Thing thing) {
+        return String.format("%s/%s", thing.getProductId(), thing.getThingId());
     }
 
 }

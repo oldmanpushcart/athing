@@ -4,6 +4,8 @@ import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingReply;
 import com.github.ompc.athing.standard.thing.ThingReplyFuture;
 
+import java.util.concurrent.Executor;
+
 /**
  * 设备应答Promise
  *
@@ -16,22 +18,23 @@ public class ThingReplyPromise<V> extends ThingTokenPromise<ThingReply<V>> imple
     /**
      * 设备应答Promise
      *
-     * @param thing 设备
-     * @param token 应答令牌
+     * @param thing    设备
+     * @param token    令牌
+     * @param executor 通知执行线程池
      */
-    public ThingReplyPromise(Thing thing, String token) {
-        this(thing, token, null);
+    public ThingReplyPromise(Thing thing, String token, Executor executor) {
+        this(thing, token, executor, null);
     }
 
     /**
      * 设备应答Promise
      *
-     * @param thing       设备
-     * @param token       应答令牌
-     * @param initializer 初始化器
+     * @param thing    设备
+     * @param token    令牌
+     * @param executor 通知执行线程池
      */
-    public ThingReplyPromise(Thing thing, String token, Initializer<ThingReply<V>> initializer) {
-        super(thing, token, initializer);
+    public ThingReplyPromise(Thing thing, String token, Executor executor, Fulfill<ThingReply<V>> fulfill) {
+        super(thing, token, executor, fulfill);
         this._string = String.format("%s?type=reply&token=%s", super.toString(), token);
     }
 

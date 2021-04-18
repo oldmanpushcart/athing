@@ -1,5 +1,7 @@
 package com.github.ompc.athing.standard.thing;
 
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
@@ -196,20 +198,37 @@ public interface ThingFuture<V> extends Future<V> {
     ThingFuture<V> removeListener(ThingFutureListener<V> listener);
 
     /**
-     * 阻塞并等待Future完成
+     * 同步等待结果
+     *
+     * @return this
+     * @throws InterruptedException  等待过程被中断
+     * @throws ExecutionException    结果为异常
+     * @throws CancellationException 结果为取消
+     */
+    ThingFuture<V> sync() throws InterruptedException, ExecutionException, CancellationException;
+
+    /**
+     * 同步等待结果，等待过程被中断后不会抛出异常，将继续往下执行
+     *
+     * @return this
+     * @throws ExecutionException    结果为异常
+     * @throws CancellationException 结果为取消
+     */
+    ThingFuture<V> syncUninterruptible() throws ExecutionException, CancellationException;
+
+    /**
+     * 阻塞并等待完成
      *
      * @return this
      * @throws InterruptedException 等待过程被中断
      */
-    ThingFuture<V> waitingForDone() throws InterruptedException;
+    ThingFuture<V> await() throws InterruptedException;
 
-//    /**
-//     * 因为整个框架基于异步驱动，异步的线程是交由多方打理，并不在本Future控制范围内。
-//     * 所以这里禁止从Future入口进行取消
-//     */
-//    @Override
-//    default boolean cancel(boolean mayInterruptIfRunning) {
-//        throw new UnsupportedOperationException();
-//    }
+    /**
+     * 阻塞并等待完成，等待过程被中断后不会抛出异常，将继续往下执行
+     *
+     * @return this
+     */
+    ThingFuture<V> awaitUninterruptible();
 
 }

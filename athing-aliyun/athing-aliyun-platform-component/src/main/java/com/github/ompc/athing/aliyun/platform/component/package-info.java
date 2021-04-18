@@ -1,0 +1,1 @@
+package com.github.ompc.athing.aliyun.platform.component;

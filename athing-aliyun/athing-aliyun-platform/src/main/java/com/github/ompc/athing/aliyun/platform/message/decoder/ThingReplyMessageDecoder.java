@@ -1,90 +1,168 @@
 package com.github.ompc.athing.aliyun.platform.message.decoder;
 
-import com.github.ompc.athing.aliyun.framework.util.FeatureCodec;
+import com.github.ompc.athing.aliyun.framework.component.meta.ThServiceMeta;
+import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
+import com.github.ompc.athing.aliyun.platform.component.message.decoder.ThingMessageDecoder;
+import com.github.ompc.athing.aliyun.platform.product.ThProductMeta;
+import com.github.ompc.athing.standard.component.Identifier;
+import com.github.ompc.athing.standard.platform.message.ThingMessage;
+import com.github.ompc.athing.standard.platform.message.ThingReplyPropertySetMessage;
+import com.github.ompc.athing.standard.platform.message.ThingReplyServiceReturnMessage;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.annotations.SerializedName;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * 应答类消息解码器
+ * 设备应答消息解码器
  *
  * @see <a href="https://help.aliyun.com/document_detail/73736.html#title-9p8-2jl-sv4">设备下行指令结果</a>
  */
-public class ThingReplyMessageDecoder extends MessageDecoder<ThingMessageDecoder.Header, ThingReplyMessageDecoder.Header> {
+public class ThingReplyMessageDecoder implements ThingMessageDecoder {
+
+    private final Gson gson = GsonFactory.getGson();
+    private final JsonParser parser = new JsonParser();
+    private final Map<String, ThProductMeta> metas;
+
+    /**
+     * 设备应答消息解码器
+     *
+     * @param metas 设备产品元数据集合
+     */
+    public ThingReplyMessageDecoder(Map<String, ThProductMeta> metas) {
+        this.metas = metas;
+    }
+
 
     @Override
-    protected boolean matches(ThingMessageDecoder.Header preHeader) {
-        return preHeader.getParent().getMessageTopic().matches("^/[^/]+/[^/]+/thing/downlink/reply/message$");
+    public ThingMessage decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception {
+
+        // 检查是否设备应答返回消息
+        if (!jmsTopic.matches("^/[^/]+/[^/]+/thing/downlink/reply/message$")) {
+            return null;
+        }
+
+        // 解析JSON对象
+        final JsonObject root = parser.parse(jmsMessage).getAsJsonObject();
+
+        // 解析应答
+        final Reply reply = gson.fromJson(root, Reply.class);
+        Objects.requireNonNull(reply.productId);
+        Objects.requireNonNull(reply.thingId);
+        Objects.requireNonNull(reply.topic);
+        Objects.requireNonNull(reply.token);
+
+        // 解码应答服务调用
+        if (reply.topic.matches("^/sys/[^/]+/[^/]+/thing/service/[^/]+_reply$")) {
+            return decodeReplyServiceReturnMessage(root, reply);
+        }
+
+        // 解码应答属性设置
+        else if (reply.topic.matches("^/sys/[^/]+/[^/]+/thing/service/property/set_reply$")) {
+            return decodeReplyPropertySetMessage(root, reply);
+        }
+
+        // 其他topic不在本次解码范畴
+        else {
+            return null;
+        }
+
     }
 
     /**
-     * 解析应答Feature字符串
+     * 解码应答服务调用消息
      *
-     * @param replyCode          应答码
-     * @param replyFeatureString 应答Feature字符串
-     * @return 应答FeatureMap
+     * @param root  根节点
+     * @param reply 应答
+     * @return 应答服务调用消息
+     * @throws DecodeException 解码错误
      */
-    private Map<String, String> parseReplyFeatureMap(int replyCode, String replyFeatureString) {
+    private ThingReplyServiceReturnMessage decodeReplyServiceReturnMessage(JsonObject root, Reply reply) throws DecodeException {
 
-        final Map<String, String> featureMap = new HashMap<>();
+        // 解析service标识
+        final Identifier identifier = Identifier.parseIdentity(
+                reply.topic.substring(
+                        reply.topic.lastIndexOf("/") + 1,
+                        reply.topic.lastIndexOf("_reply")
+                )
+        );
 
-        // 如果不是成功的消息，message中是错误信息，不需要解析
-        // 如果message不是以特定字符串开头，说明不是feature特征字符串，不需要解析
-        if (replyCode != 200//ThingCodes.OK
-                || null == replyFeatureString
-                || !replyFeatureString.startsWith("feature=1;")) {
-            return featureMap;
+        // 获取产品元数据
+        final ThProductMeta pMeta = metas.get(reply.productId);
+        if (null == pMeta) {
+            throw new DecodeException(String.format("product: %s is not define!", reply.productId));
         }
 
-        return FeatureCodec.decode(replyFeatureString);
-    }
+        // 获取服务元数据
+        final ThServiceMeta sMeta = pMeta.getThServiceMeta(identifier);
+        if (null == sMeta) {
+            throw new DecodeException(String.format("service: %s is not define in product: %s!", identifier, reply.productId));
+        }
 
+        // 解码返回值对象
+        final Object returnObj = gson.fromJson(root.get("data"), sMeta.getReturnType());
 
-    @Override
-    protected Header decodeHeader(ThingMessageDecoder.Header preHeader, JsonObject payloadJsonObject) throws DecodeException {
-        final String replyTopic = required(payloadJsonObject, "topic").getAsString();
-        final int replyCode = required(payloadJsonObject, "code").getAsInt();
-        final String replyMessage = getMemberAsString(payloadJsonObject, "message", "success");
-        return new Header(
-                preHeader,
-                replyTopic,
-                replyCode,
-                replyMessage,
-                parseReplyFeatureMap(replyCode, replyMessage)
+        // 解码消息
+        return new ThingReplyServiceReturnMessage(
+                reply.productId,
+                reply.thingId,
+                reply.timestamp,
+                reply.token,
+                reply.code,
+                reply.message,
+                identifier,
+                returnObj
         );
     }
 
-    public static class Header extends MessageDecoder.Header<ThingMessageDecoder.Header> {
+    /**
+     * 解码应答属性设置消息
+     *
+     * @param root  根节点
+     * @param reply 应答
+     * @return 应答属性设置消息
+     */
+    private ThingReplyPropertySetMessage decodeReplyPropertySetMessage(JsonObject root, Reply reply) {
+        return new ThingReplyPropertySetMessage(
+                reply.productId,
+                reply.thingId,
+                reply.timestamp,
+                reply.token,
+                reply.code,
+                reply.message
+        );
+    }
 
-        private final String replyTopic;
-        private final int replyCode;
-        private final String replyMessage;
-        private final Map<String, String> replyFeatureMap;
 
-        public Header(ThingMessageDecoder.Header header, String replyTopic, int replyCode, String replyMessage, Map<String, String> replyFeatureMap) {
-            super(header);
-            this.replyTopic = replyTopic;
-            this.replyCode = replyCode;
-            this.replyMessage = replyMessage;
-            this.replyFeatureMap = replyFeatureMap;
-        }
+    /**
+     * 应答
+     */
+    private static class Reply {
 
-        public String getReplyTopic() {
-            return replyTopic;
-        }
+        @SerializedName("productKey")
+        String productId;
 
-        public int getReplyCode() {
-            return replyCode;
-        }
+        @SerializedName("deviceName")
+        String thingId;
 
-        public String getReplyMessage() {
-            return replyMessage;
-        }
+        @SerializedName("topic")
+        String topic;
 
-        public Map<String, String> getReplyFeatureMap() {
-            return replyFeatureMap;
-        }
+        @SerializedName("gmtCreate")
+        long timestamp;
+
+        @SerializedName("requestId")
+        String token;
+
+        @SerializedName("code")
+        int code;
+
+        @SerializedName("message")
+        String message;
+
     }
 
 }

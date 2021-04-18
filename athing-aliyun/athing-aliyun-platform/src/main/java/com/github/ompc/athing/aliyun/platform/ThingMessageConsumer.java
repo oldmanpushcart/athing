@@ -1,7 +1,8 @@
 package com.github.ompc.athing.aliyun.platform;
 
-import com.github.ompc.athing.aliyun.platform.message.ThingJmsMessageListenerImpl;
+import com.github.ompc.athing.aliyun.platform.component.message.decoder.ThingMessageDecoder;
 import com.github.ompc.athing.aliyun.platform.product.ThProductMeta;
+import com.github.ompc.athing.aliyun.platform.message.ThingJmsMessageListenerImpl;
 import com.github.ompc.athing.standard.platform.ThingPlatformException;
 import com.github.ompc.athing.standard.platform.message.ThingMessageListener;
 import org.slf4j.Logger;
@@ -15,10 +16,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.io.Closeable;
 import java.lang.IllegalStateException;
-import java.util.Base64;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -36,6 +34,7 @@ class ThingMessageConsumer implements Closeable {
                                  final Context context,
                                  final Connection connection,
                                  final Map<String, ThProductMeta> thProductMetaMap,
+                                 final Set<ThingMessageDecoder> decoders,
                                  final ThingMessageListener listener) throws JMSException, NamingException {
         this.name = name;
         this.toString = String.format("TMC:%s", name);
@@ -43,7 +42,7 @@ class ThingMessageConsumer implements Closeable {
         final Session session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
         final Destination queue = (Destination) context.lookup("QUEUE");
         final MessageConsumer consumer = session.createConsumer(queue);
-        consumer.setMessageListener(new ThingJmsMessageListenerImpl(thProductMetaMap, listener));
+        consumer.setMessageListener(new ThingJmsMessageListenerImpl(thProductMetaMap, decoders, listener));
         connection.start();
     }
 
@@ -98,6 +97,7 @@ class ThingMessageConsumer implements Closeable {
                                                                   final String connectionUrl,
                                                                   final String group,
                                                                   final Map<String, ThProductMeta> productMetaMap,
+                                                                  final Set<ThingMessageDecoder> decoders,
                                                                   final ThingMessageListener listener) throws ThingPlatformException {
 
         final String uniqueId = UUID.randomUUID().toString();
@@ -109,7 +109,7 @@ class ThingMessageConsumer implements Closeable {
                     getUsername(access, timestamp, uniqueId, group),
                     getPassword(access, timestamp)
             );
-            return new ThingMessageConsumer(String.format("/%s", group), context, connection, productMetaMap, listener);
+            return new ThingMessageConsumer(String.format("/%s", group), context, connection, productMetaMap, decoders, listener);
         } catch (NamingException | JMSException cause) {
             throw new AliyunThingPlatformException(
                     String.format("thing-message create consumer failure, group=%s;url=%s;", group, connectionUrl),

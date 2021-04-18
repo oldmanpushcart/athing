@@ -8,6 +8,13 @@ import com.github.ompc.athing.standard.thing.Thing;
 public interface ThingConfigListener {
 
     /**
+     * 不支持的操作
+     */
+    ThingConfigListener unsupported = (thing, config) -> {
+        throw new UnsupportedOperationException();
+    };
+
+    /**
      * 配置设备
      *
      * @param thing  设备

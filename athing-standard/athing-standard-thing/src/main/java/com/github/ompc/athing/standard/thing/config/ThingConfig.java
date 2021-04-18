@@ -1,6 +1,7 @@
 package com.github.ompc.athing.standard.thing.config;
 
 import com.github.ompc.athing.standard.thing.ThingException;
+import com.github.ompc.athing.standard.thing.ThingFuture;
 
 /**
  * 设备配置
@@ -24,10 +25,9 @@ public interface ThingConfig {
     /**
      * 获取配置内容
      *
-     * @return 配置内容
-     * @throws ThingException 获取配置内容失败
+     * @return 获取凭证
      */
-    String getConfig() throws ThingException;
+    ThingFuture<String> getConfig();
 
     /**
      * 配置范围

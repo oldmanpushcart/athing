@@ -4,7 +4,10 @@ import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.component.annotation.ThCom;
 
+import java.lang.annotation.Annotation;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 设备组件元数据
@@ -119,12 +122,78 @@ public class ThComMeta {
     }
 
     /**
+     * 获取标识属性元数据
+     *
+     * @param identifier 属性标识
+     * @return 属性元数据
+     */
+    public ThPropertyMeta getThPropertyMeta(Identifier identifier) {
+        return identityThPropertyMetaMap.get(identifier);
+    }
+
+    /**
      * 获取标识服务元数据集合
      *
      * @return 标识服务元数据集合
      */
     public Map<Identifier, ThServiceMeta> getIdentityThServiceMetaMap() {
         return identityThServiceMetaMap;
+    }
+
+    /**
+     * 获取标识服务元数据
+     *
+     * @param identifier 服务标识
+     * @return 服务元数据
+     */
+    public ThServiceMeta getThServiceMeta(Identifier identifier) {
+        return identityThServiceMetaMap.get(identifier);
+    }
+
+    /**
+     * 匿名组件ID序列
+     */
+    private final static AtomicInteger anonymousSeq = new AtomicInteger(1000);
+
+    /**
+     * 生成匿名的设备组件元数据
+     *
+     * @param thingComType 设备组件类型
+     * @return 匿名设备组件元数据
+     */
+    public static ThComMeta anonymous(final Class<?> thingComType) {
+        return new ThComMeta(
+                new ThCom() {
+
+                    private final String id = String.format("anonymous$%s", anonymousSeq.getAndIncrement());
+                    private final String name = "anonymous component";
+                    private final String desc = "anonymous component";
+
+                    @Override
+                    public Class<? extends Annotation> annotationType() {
+                        return ThCom.class;
+                    }
+
+                    @Override
+                    public String id() {
+                        return id;
+                    }
+
+                    @Override
+                    public String name() {
+                        return name;
+                    }
+
+                    @Override
+                    public String desc() {
+                        return desc;
+                    }
+                },
+                thingComType,
+                Collections.emptyMap(),
+                Collections.emptyMap(),
+                Collections.emptyMap()
+        );
     }
 
 }

@@ -1,5 +1,6 @@
 package com.github.ompc.athing.aliyun.qatest.puppet;
 
+import com.github.ompc.athing.aliyun.platform.ThingMessageConsumerBuilder;
 import com.github.ompc.athing.aliyun.platform.ThingPlatformAccess;
 import com.github.ompc.athing.aliyun.platform.ThingPlatformBuilder;
 import com.github.ompc.athing.aliyun.qatest.QaThingConfigListener;
@@ -11,7 +12,8 @@ import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.QaThingComImpl;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.ResourceThingComImpl;
 import com.github.ompc.athing.aliyun.thing.ThingAccess;
-import com.github.ompc.athing.aliyun.thing.ThingConnectOption;
+import com.github.ompc.athing.aliyun.thing.ThingBoot;
+import com.github.ompc.athing.aliyun.thing.ThingBootOption;
 import com.github.ompc.athing.aliyun.thing.ThingConnector;
 import com.github.ompc.athing.component.dmgr.api.DmgrThingCom;
 import com.github.ompc.athing.standard.component.ThingCom;
@@ -30,7 +32,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Properties;
+import java.util.concurrent.Executors;
 
 import static com.github.ompc.athing.aliyun.framework.Constants.DEFAULT_REGION_ID;
 
@@ -109,35 +113,31 @@ public class PuppetSupport {
     // ------------------------------------- THING ------------------------------------
 
     private static Thing initPuppetThing() throws Exception {
-        return new ThingConnector()
-                .connecting(THING_SERVER_URL, THING_ACCESS)
+        final Thing thing = new ThingBoot(new URI(THING_SERVER_URL), THING_ACCESS)
+                .executor(Executors.newFixedThreadPool(20))
                 .load(new File("./src/test/resources/lib/athing-component-dmgr-core-1.0.0-SNAPSHOT-jar-with-dependencies-for-qatest.jar"))
-                .load(
-                        new QaThingComImpl(),
+                .load(new QaThingComImpl(),
                         new ResourceThingComImpl(),
                         new ThingCom() {
                         }
                 )
-                .setThingConfigListener(qaThingConfigListener)
-                .setThingOpHook(thing -> logger.info("{} require reboot", thing))
-                .connect(new ThingConnectOption())
-                .waitingForDone()
-                .getSuccess();
+                .boot();
+        thing.getThingOp().connect().sync();
+        return thing;
     }
 
     private static ThingPlatform initPuppetThingPlatform() throws ThingPlatformException {
         return new ThingPlatformBuilder()
                 .building(DEFAULT_REGION_ID, PLATFORM_ACCESS)
                 .product(PRODUCT_ID, DmgrThingCom.class, LightThingCom.class, EchoThingCom.class)
-                .consumer(
-                        DEFAULT_REGION_ID,
-                        PLATFORM_ACCESS,
-                        PLATFORM_JMS_CONNECTION_URL,
-                        PLATFORM_JMS_CONSUMER_GROUP,
-                        new QaThingMessageGroupListener(new ThingMessageListener[]{
+                .consumer(new ThingMessageConsumerBuilder()
+                        .access(PLATFORM_ACCESS)
+                        .connection(PLATFORM_JMS_CONNECTION_URL)
+                        .group(PLATFORM_JMS_CONSUMER_GROUP)
+                        .listener(new QaThingMessageGroupListener(new ThingMessageListener[]{
                                 qaThingReplyMessageListener,
                                 qaThingPostMessageListener
-                        })
+                        }))
                 )
                 .build();
     }
