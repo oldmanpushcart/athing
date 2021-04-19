@@ -139,6 +139,13 @@ public class ThingPromise<V> extends NotifiablePromise<V> {
      * @return 设备契约
      */
     public static <V, T extends ThingPromise<V>> T fulfill(T promise, Fulfill<V> fulfill) {
+
+        // 如果promise已经完成，则不必继续履约了
+        if (promise.isDone()) {
+            return promise;
+        }
+
+        // 异步进行履约
         promise.getExecutor().execute(() -> {
             try {
                 fulfill.fulfilling(promise);

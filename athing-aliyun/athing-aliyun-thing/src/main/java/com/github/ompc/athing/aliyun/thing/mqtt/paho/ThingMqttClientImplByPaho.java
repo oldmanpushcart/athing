@@ -8,6 +8,7 @@ import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttClient;
 import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttConnection;
 import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttMessage;
 import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttMessageHandler;
+import com.github.ompc.athing.aliyun.thing.util.ThingFutureUtils;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
 import com.github.ompc.athing.standard.thing.ThingFuture;
@@ -105,8 +106,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
             // 订阅后续动作
             promise.self()
                     .onSuccess(future -> trips.add(trip))
-                    .onSuccess(future -> logger.debug("{} subscribe mqtt-message success! topic={};", ThingMqttClientImplByPaho.this, express))
-                    .onFailure(future -> logger.debug("{} subscribe mqtt-message failure! topic={};", ThingMqttClientImplByPaho.this, express, future.getException()));
+                    .onSuccess(future -> logger.debug("{} subscribe mqtt-message success! topic={};", _this, express))
+                    .onFailure(future -> logger.debug("{} subscribe mqtt-message failure! topic={};", _this, express, future.getException()));
 
             // 如果已连接，则直接开始订阅
             if (_isConnected()) {
@@ -136,8 +137,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
             // 发布后续动作
             promise.self()
-                    .onSuccess(future -> logger.debug("{} publish mqtt-message success! topic={};", ThingMqttClientImplByPaho.this, topic))
-                    .onFailure(future -> logger.debug("{} publish mqtt-message failure! topic={};", ThingMqttClientImplByPaho.this, topic, future.getException()));
+                    .onSuccess(future -> logger.debug("{} publish mqtt-message success! topic={};", _this, topic))
+                    .onFailure(future -> logger.debug("{} publish mqtt-message failure! topic={};", _this, topic, future.getException()));
 
             // 执行发布
             pahoClient.publish(topic, message.getData(), message.getQos(), false, new Object(), new MqttActionListenerImpl(promise));
@@ -152,8 +153,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
             // 连接后续动作
             promise.self()
-                    .onSuccess(future -> logger.debug("{} connect success! remote={};", ThingMqttClientImplByPaho.this, pahoClient.getServerURI()))
-                    .onFailure(future -> logger.debug("{} connect failure! remote={};", ThingMqttClientImplByPaho.this, pahoClient.getServerURI(), future.getException()));
+                    .onSuccess(future -> logger.debug("{} connect success! remote={};", _this, pahoClient.getServerURI()))
+                    .onFailure(future -> logger.debug("{} connect failure! remote={};", _this, pahoClient.getServerURI(), future.getException()));
 
             // 执行连接
             pahoClient.connect(new MqttConnectOptions(), new Object(), new MqttActionListenerImpl(promise));
@@ -167,8 +168,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
             // 断开后续动作
             promise.self()
-                    .onSuccess(future -> logger.debug("{} disconnect success!", ThingMqttClientImplByPaho.this))
-                    .onFailure(future -> logger.debug("{} disconnect failure!", ThingMqttClientImplByPaho.this, future.getException()));
+                    .onSuccess(future -> logger.debug("{} disconnect success!", _this))
+                    .onFailure(future -> logger.debug("{} disconnect failure!", _this, future.getException()));
 
             // 执行关闭
             pahoClient.disconnect(new Object(), new MqttActionListenerImpl(promise));
@@ -182,7 +183,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
     @Override
     public ThingFuture<ThingMqttConnection> connect() {
-        return ThingPromise.fulfill(thing, executor, connectP -> {
+        return ThingFutureUtils.uncancellable(ThingPromise.fulfill(thing, executor, connectP -> {
 
             // 检查客户端是否已被销毁
             synchronized (_this) {
@@ -191,7 +192,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
                 }
             }
 
-            _connect().onFailure(connectP::acceptFail)
+            _connect()
+                    .onFailure(connectP::acceptFail)
                     .onSuccess(connF -> {
 
                         // 断开承诺
@@ -239,18 +241,18 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
                                 }
 
                                 // 一切状态正常，进入关闭程序
-                                return _disconnect().onSuccess(disF -> disconnectP.trySuccess());
+                                return ThingFutureUtils.uncancellable(_disconnect().onSuccess(disF -> disconnectP.trySuccess()));
                             }
 
                             @Override
                             public ThingFuture<Void> getDisconnectFuture() {
-                                return disconnectP;
+                                return ThingFutureUtils.uncancellable(disconnectP);
                             }
 
                         });
 
                     });
-        });
+        }));
     }
 
     @Override
@@ -320,8 +322,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
             ThingPromise.fulfill(thing, executor, promise -> {
 
                 promise.self()
-                        .onSuccess(future -> logger.debug("{} handle mqtt-message success! topic={};", ThingMqttClientImplByPaho.this, topic))
-                        .onFailure(future -> logger.debug("{} handle mqtt-message failure! topic={};", ThingMqttClientImplByPaho.this, topic, future.getException()));
+                        .onSuccess(future -> logger.debug("{} handle mqtt-message success! topic={};", _this, topic))
+                        .onFailure(future -> logger.debug("{} handle mqtt-message failure! topic={};", _this, topic, future.getException()));
 
                 handler.onMessage(topic, new ThingMqttMessage(message.getQos(), message.getPayload()));
                 promise.trySuccess(message);
