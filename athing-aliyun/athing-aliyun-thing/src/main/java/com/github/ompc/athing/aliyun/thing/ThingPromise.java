@@ -19,38 +19,14 @@ public class ThingPromise<V> extends NotifiablePromise<V> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String _string;
 
-    public ThingPromise(Thing thing, Executor executor) {
-        this(thing, executor, null);
-    }
-
     /**
      * 设备承诺
      *
      * @param thing 设备
      */
-    public ThingPromise(Thing thing, Executor executor, Fulfill<V> fulfill) {
+    public ThingPromise(Thing thing, Executor executor) {
         super(thing, executor);
         this._string = String.format("%s/promise/%d", thing, sequencer.getAndIncrement());
-        fulfill(executor, fulfill);
-    }
-
-    /**
-     * 执行履约
-     *
-     * @param executor 执行器
-     * @param fulfill  履约
-     */
-    private void fulfill(Executor executor, Fulfill<V> fulfill) {
-        if (null == fulfill) {
-            return;
-        }
-        executor.execute(() -> {
-            try {
-                fulfill.fulfilling(this);
-            } catch (Throwable cause) {
-                tryException(cause);
-            }
-        });
     }
 
     @Override
@@ -137,6 +113,40 @@ public class ThingPromise<V> extends NotifiablePromise<V> {
          */
         void fulfilling(ThingPromise<V> promise) throws Throwable;
 
+    }
+
+
+    /**
+     * 创建设备契约并履约
+     *
+     * @param thing    设备
+     * @param executor 执行器
+     * @param fulfill  履约
+     * @param <V>      类型
+     * @return 设备契约
+     */
+    public static <V> ThingPromise<V> fulfill(Thing thing, Executor executor, Fulfill<V> fulfill) {
+        return fulfill(new ThingPromise<>(thing, executor), fulfill);
+    }
+
+    /**
+     * 设备契约履约
+     *
+     * @param promise 契约
+     * @param fulfill 履约
+     * @param <V>     类型
+     * @param <T>     契约类型
+     * @return 设备契约
+     */
+    public static <V, T extends ThingPromise<V>> T fulfill(T promise, Fulfill<V> fulfill) {
+        promise.getExecutor().execute(() -> {
+            try {
+                fulfill.fulfilling(promise);
+            } catch (Throwable cause) {
+                promise.tryException(cause);
+            }
+        });
+        return promise;
     }
 
 }

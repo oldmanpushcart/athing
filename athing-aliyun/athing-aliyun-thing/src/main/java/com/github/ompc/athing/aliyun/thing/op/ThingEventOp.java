@@ -80,8 +80,7 @@ public class ThingEventOp {
      */
     public ThingReplyFuture<Void> post(ThingEvent<?> event) {
         final String token = generateToken();
-        return new ThingReplyPromise<>(thing, token, executor, promise -> {
-
+        return ThingPromise.fulfill(new ThingReplyPromise<>(thing, token, executor), promise -> {
             final String identity = event.getIdentifier().getIdentity();
             final String topic = format("/sys/%s/%s/thing/event/%s/post", thing.getProductId(), thing.getThingId(), identity);
             final Object message = new MapObject()
@@ -94,7 +93,6 @@ public class ThingEventOp {
                     .exitProperty();
 
             promise.acceptDone(messenger.call(token, topic, message));
-
         });
 
     }

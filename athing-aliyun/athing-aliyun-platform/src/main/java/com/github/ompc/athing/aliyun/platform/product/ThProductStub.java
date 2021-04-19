@@ -261,23 +261,11 @@ public class ThProductStub {
      */
     public Map<Identifier, ThingPropertySnapshot> getPropertySnapshotMap(String thingId, Set<Identifier> identifiers) throws ThingPlatformException {
 
-        final long end = System.currentTimeMillis();
-        final long begin = end - SNAPSHOT_DURATION_MS;
-
-        final PropertiesSnapshotIteratorImpl propertiesSnapshotIt
-                = new PropertiesSnapshotIteratorImpl(
-                client, productId, thProductMeta, thingId, identifiers, begin, end, SortOrder.ASCENDING, 1
-        );
-
         final Map<Identifier, ThingPropertySnapshot> propertySnapshotMap = new HashMap<>();
-        while (propertiesSnapshotIt.rollingHasNext()) {
-            final Map.Entry<Identifier, Collection<ThingPropertySnapshot>> entry = propertiesSnapshotIt.next();
-            final Collection<ThingPropertySnapshot> thingPropertySnapshots = entry.getValue();
-            if (null != thingPropertySnapshots && !thingPropertySnapshots.isEmpty()) {
-                propertySnapshotMap.put(
-                        entry.getKey(),
-                        thingPropertySnapshots.iterator().next()
-                );
+        for (final Identifier identifier : identifiers) {
+            final ThingPropertySnapshot snapshot = getPropertySnapshot(thingId, identifier);
+            if (null != snapshot) {
+                propertySnapshotMap.put(identifier, snapshot);
             }
         }
         return propertySnapshotMap;

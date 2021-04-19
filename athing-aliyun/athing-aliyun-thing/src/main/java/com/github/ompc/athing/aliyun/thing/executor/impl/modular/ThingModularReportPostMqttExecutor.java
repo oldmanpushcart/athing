@@ -3,6 +3,7 @@ package com.github.ompc.athing.aliyun.thing.executor.impl.modular;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.thing.ThingExecutor;
 import com.github.ompc.athing.aliyun.thing.ThingImpl;
+import com.github.ompc.athing.aliyun.thing.ThingPromise;
 import com.github.ompc.athing.aliyun.thing.ThingTokenPromise;
 import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
 import com.github.ompc.athing.aliyun.thing.op.ThingMessenger;
@@ -40,14 +41,12 @@ public class ThingModularReportPostMqttExecutor implements MqttExecutor {
     /**
      * 报告设备模块信息
      *
-     * @param token  令牌
      * @param module 模块
      * @return future
      */
     public ThingTokenFuture<Void> reportModule(Modular module) {
         final String token = generateToken();
-        return new ThingTokenPromise<>(thing, token, executor, promise -> {
-
+        return ThingPromise.fulfill(new ThingTokenPromise<>(thing, token, executor), promise -> {
             final String topic = format("/ota/device/inform/%s/%s", thing.getProductId(), thing.getThingId());
             final Object message = new MapObject()
                     .putProperty("id", token)
@@ -65,7 +64,6 @@ public class ThingModularReportPostMqttExecutor implements MqttExecutor {
                                     module.getModuleVersion()
                             )
                     );
-
         });
 
     }

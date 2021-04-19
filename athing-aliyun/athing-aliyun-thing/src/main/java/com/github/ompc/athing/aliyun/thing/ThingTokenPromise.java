@@ -23,18 +23,7 @@ public class ThingTokenPromise<V> extends ThingPromise<V> implements ThingTokenF
      * @param executor 通知执行线程池
      */
     public ThingTokenPromise(Thing thing, String token, Executor executor) {
-        this(thing, token, executor, null);
-    }
-
-    /**
-     * 设备令牌Promise
-     *
-     * @param thing    设备
-     * @param token    令牌
-     * @param executor 通知执行线程池
-     */
-    public ThingTokenPromise(Thing thing, String token, Executor executor, Fulfill<V> fulfill) {
-        super(thing, executor, fulfill);
+        super(thing, executor);
         this.token = token;
         this._string = String.format("%s?type=token&token=%s", super.toString(), token);
     }

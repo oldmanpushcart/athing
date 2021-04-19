@@ -58,7 +58,7 @@ public class ThingOpImpl implements ThingOp {
 
     @Override
     public ThingFuture<ThingConnection> connect() {
-        return new ThingPromise<>(thing, executor, promise ->
+        return ThingPromise.fulfill(thing, executor, promise ->
                 client.connect()
                         .onFailure(promise::acceptFail)
                         .onSuccess(connF -> promise.trySuccess(connF.getSuccess())));

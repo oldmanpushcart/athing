@@ -20,6 +20,9 @@ import java.util.Set;
 
 import static java.lang.String.format;
 
+/**
+ * 设备MQTT客户端
+ */
 public interface ThingMqttClient {
 
     /**

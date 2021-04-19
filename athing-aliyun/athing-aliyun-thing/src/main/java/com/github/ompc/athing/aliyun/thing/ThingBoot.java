@@ -24,7 +24,7 @@ import java.util.concurrent.Executor;
  */
 public class ThingBoot {
 
-    private static final Logger logger = LoggerFactory.getLogger(ThingConnector.class);
+    private static final Logger logger = LoggerFactory.getLogger(ThingBoot.class);
 
     static {
         logger.info(IOUtils.getLogo("athing-logo.txt"));

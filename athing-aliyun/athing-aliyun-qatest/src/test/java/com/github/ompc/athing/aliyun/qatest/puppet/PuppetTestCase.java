@@ -153,7 +153,6 @@ public class PuppetTestCase extends PuppetSupport {
     }
 
     @Test
-    // @Ignore
     public void test$platform_batch_get_properties$success() throws ThingPlatformException, InterruptedException {
 
         final Identifier cpuInfoId = Identifier.toIdentifier(DmgrThingCom.THING_COM_ID, "cpu_info");

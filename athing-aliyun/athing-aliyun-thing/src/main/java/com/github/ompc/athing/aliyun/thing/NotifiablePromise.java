@@ -44,6 +44,10 @@ public abstract class NotifiablePromise<V> extends ThingFutureImpl<V> {
         this.executor = executor;
     }
 
+    Executor getExecutor() {
+        return executor;
+    }
+
     /**
      * <p>重点，此处为通知核心逻辑!</p>
      *

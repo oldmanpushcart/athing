@@ -83,7 +83,7 @@ public class ThingMessenger {
      */
     public ThingFuture<Void> post(String topic, int qos, Object message) {
 
-        return new ThingPromise<>(thing, executor, promise -> {
+        return ThingPromise.fulfill(thing, executor, promise -> {
 
             // 构建MQTT消息
             final String payload = gson.toJson(message);
@@ -110,7 +110,7 @@ public class ThingMessenger {
      * @return 呼叫Future
      */
     public <V> ThingFuture<V> call(String token, String topic, Object message) {
-        return new ThingPromise<>(thing, executor, promise -> {
+        return ThingPromise.fulfill(thing, executor, promise -> {
 
             // 注册promise
             tokens.put(token, promise);

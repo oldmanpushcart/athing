@@ -23,18 +23,7 @@ public class ThingReplyPromise<V> extends ThingTokenPromise<ThingReply<V>> imple
      * @param executor 通知执行线程池
      */
     public ThingReplyPromise(Thing thing, String token, Executor executor) {
-        this(thing, token, executor, null);
-    }
-
-    /**
-     * 设备应答Promise
-     *
-     * @param thing    设备
-     * @param token    令牌
-     * @param executor 通知执行线程池
-     */
-    public ThingReplyPromise(Thing thing, String token, Executor executor, Fulfill<ThingReply<V>> fulfill) {
-        super(thing, token, executor, fulfill);
+        super(thing, token, executor);
         this._string = String.format("%s?type=reply&token=%s", super.toString(), token);
     }
 

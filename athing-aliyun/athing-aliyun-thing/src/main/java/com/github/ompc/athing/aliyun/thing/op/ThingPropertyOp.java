@@ -219,7 +219,7 @@ public class ThingPropertyOp {
      */
     public ThingReplyFuture<Void> post(Identifier[] identifiers) {
         final String token = generateToken();
-        return new ThingReplyPromise<>(thing, token, executor, promise ->
+        return ThingPromise.fulfill(new ThingReplyPromise<>(thing, token, executor), promise ->
                 promise.acceptDone(messenger.call(
                         token,
                         format("/sys/%s/%s/thing/event/property/post", thing.getProductId(), thing.getThingId()),

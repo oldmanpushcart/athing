@@ -13,8 +13,6 @@ import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.QaThingComImpl
 import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.ResourceThingComImpl;
 import com.github.ompc.athing.aliyun.thing.ThingAccess;
 import com.github.ompc.athing.aliyun.thing.ThingBoot;
-import com.github.ompc.athing.aliyun.thing.ThingBootOption;
-import com.github.ompc.athing.aliyun.thing.ThingConnector;
 import com.github.ompc.athing.component.dmgr.api.DmgrThingCom;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.platform.ThingPlatform;
@@ -23,8 +21,6 @@ import com.github.ompc.athing.standard.platform.message.ThingMessageListener;
 import com.github.ompc.athing.standard.platform.message.ThingPostMessage;
 import com.github.ompc.athing.standard.platform.message.ThingReplyMessage;
 import com.github.ompc.athing.standard.thing.Thing;
-import com.github.ompc.athing.standard.thing.ThingFuture;
-import com.github.ompc.athing.standard.thing.ThingFutureListener;
 import com.github.ompc.athing.standard.thing.config.ThingConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

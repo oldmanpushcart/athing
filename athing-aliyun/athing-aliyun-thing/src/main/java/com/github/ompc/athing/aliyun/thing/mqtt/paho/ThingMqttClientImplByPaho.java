@@ -97,7 +97,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
     @Override
     public ThingFuture<Void> subscribe(String express, ThingMqttMessageHandler handler) {
-        return new ThingPromise<>(thing, executor, promise -> {
+        return ThingPromise.fulfill(thing, executor, promise -> {
 
             // 构造订阅三元组
             final PahoSubTrip trip = new PahoSubTrip(express, MQTT_QOS_EXACTLY_ONCE, new MqttMessageListenerImpl(handler));
@@ -132,7 +132,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
     @Override
     public ThingFuture<Void> publish(String topic, ThingMqttMessage message) {
-        return new ThingPromise<>(thing, executor, promise -> {
+        return ThingPromise.fulfill(thing, executor, promise -> {
 
             // 发布后续动作
             promise.self()
@@ -148,7 +148,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
 
     private ThingFuture<Void> _connect() {
-        return new ThingPromise<>(thing, executor, promise -> {
+        return ThingPromise.fulfill(thing, executor, promise -> {
 
             // 连接后续动作
             promise.self()
@@ -163,7 +163,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
     }
 
     private ThingFuture<Void> _disconnect() {
-        return new ThingPromise<>(thing, executor, promise -> {
+        return ThingPromise.fulfill(thing, executor, promise -> {
 
             // 断开后续动作
             promise.self()
@@ -182,7 +182,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
     @Override
     public ThingFuture<ThingMqttConnection> connect() {
-        return new ThingPromise<>(thing, executor, connectP -> {
+        return ThingPromise.fulfill(thing, executor, connectP -> {
 
             // 检查客户端是否已被销毁
             synchronized (_this) {
@@ -195,7 +195,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
                     .onSuccess(connF -> {
 
                         // 断开承诺
-                        final ThingPromise<Void> disconnectP = new ThingPromise<>(thing, executor, promise ->
+                        final ThingPromise<Void> disconnectP = ThingPromise.fulfill(thing, executor, promise ->
                                 promise.onSuccess(future -> {
 
                                     // 释放断开成功诺
@@ -228,13 +228,13 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
                                 // 判断当前连接是否已关闭
                                 if (disconnectP.isDone()) {
-                                    return new ThingPromise<>(thing, executor, promise ->
+                                    return ThingPromise.fulfill(thing, executor, promise ->
                                             promise.tryException(new IllegalAccessException("connection is disconnected!")));
                                 }
 
                                 // 判断当前连接是否还有效
                                 if (_this.disconnectP != disconnectP) {
-                                    return new ThingPromise<>(thing, executor, promise ->
+                                    return ThingPromise.fulfill(thing, executor, promise ->
                                             promise.tryException(new IllegalAccessException("connection is invalid!")));
                                 }
 
@@ -317,7 +317,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
         @Override
         public void messageArrived(String topic, MqttMessage message) {
-            new ThingPromise<MqttMessage>(thing, executor, promise -> {
+            ThingPromise.fulfill(thing, executor, promise -> {
 
                 promise.self()
                         .onSuccess(future -> logger.debug("{} handle mqtt-message success! topic={};", ThingMqttClientImplByPaho.this, topic))
