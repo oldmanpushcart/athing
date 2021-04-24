@@ -16,7 +16,6 @@
         <module>athing-aliyun-thing</module>
         <module>athing-aliyun-thing-component</module>
         <module>athing-aliyun-platform</module>
-        <module>athing-aliyun-platform-component</module>
         <module>athing-aliyun-qatest</module>
     </modules>
 </project>

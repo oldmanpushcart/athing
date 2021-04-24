@@ -15,7 +15,6 @@
             <groupId>com.github.ompc.athing.standard</groupId>
             <artifactId>athing-standard-component</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

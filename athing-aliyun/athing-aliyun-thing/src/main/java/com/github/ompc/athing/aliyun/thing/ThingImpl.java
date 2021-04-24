@@ -1,6 +1,7 @@
 package com.github.ompc.athing.aliyun.thing;
 
 import com.github.ompc.athing.aliyun.thing.component.access.impl.AccessThingComImpl;
+import com.github.ompc.athing.aliyun.thing.component.alink.impl.AlinkThingComImpl;
 import com.github.ompc.athing.aliyun.thing.component.mqtt.impl.MqttThingComImpl;
 import com.github.ompc.athing.aliyun.thing.container.ThingComContainer;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComLoader;
@@ -70,6 +71,7 @@ public class ThingImpl implements Thing {
         // 追加默认组件
         loaders.add((productId, thingId) -> new ThingCom[]{
                 new AccessThingComImpl(access),
+                new AlinkThingComImpl(),
                 new MqttThingComImpl(client)
         });
 

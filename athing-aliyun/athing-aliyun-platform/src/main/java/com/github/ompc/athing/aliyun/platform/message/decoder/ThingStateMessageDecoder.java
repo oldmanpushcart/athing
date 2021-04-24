@@ -1,9 +1,10 @@
 package com.github.ompc.athing.aliyun.platform.message.decoder;
 
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
-import com.github.ompc.athing.aliyun.platform.component.message.decoder.ThingMessageDecoder;
+import com.github.ompc.athing.aliyun.platform.message.ThingMessageDecoder;
+import com.github.ompc.athing.aliyun.platform.util.EnumUtils;
 import com.github.ompc.athing.standard.platform.message.ThingMessage;
-import com.github.ompc.athing.standard.platform.message.ThingStateChangedMessage;
+import com.github.ompc.athing.standard.platform.message.ThingStateMessage;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
@@ -21,45 +22,39 @@ public class ThingStateMessageDecoder implements ThingMessageDecoder {
     private final Gson gson = GsonFactory.getGson();
 
     @Override
-    public ThingMessage decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception {
+    public ThingMessage[] decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception {
 
         if (!jmsTopic.matches("/as/mqtt/status/[^/]+/[^/]+")) {
             return null;
         }
 
-        final ThingStateChanged thingStateChanged = gson.fromJson(jmsMessage, ThingStateChanged.class);
+        final Data data = gson.fromJson(jmsMessage, Data.class);
         final SimpleDateFormat utcDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         utcDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         try {
-            final long utcOccurTimestamp = utcDateFormat.parse(thingStateChanged.utcTime).getTime();
-            final long utcLastTimestamp = utcDateFormat.parse(thingStateChanged.utcLastTime).getTime();
-            return new ThingStateChangedMessage(
-                    thingStateChanged.productId,
-                    thingStateChanged.thingId,
-                    utcOccurTimestamp,
-                    parseThingStateChangedEventState(thingStateChanged),
-                    utcLastTimestamp,
-                    thingStateChanged.clientIp
-            );
+            final long utcOccurTimestamp = utcDateFormat.parse(data.utcTime).getTime();
+            final long utcLastTimestamp = utcDateFormat.parse(data.utcLastTime).getTime();
+            return new ThingMessage[]{
+                    new ThingStateMessage(
+                            data.productId,
+                            data.thingId,
+                            utcOccurTimestamp,
+                            EnumUtils.valueOf(data.status.toUpperCase(), ThingStateMessage.State.class),
+                            utcLastTimestamp,
+                            data.clientIp
+                    )
+            };
         } catch (ParseException cause) {
-            throw new DecodeException(String.format("illegal utc format, occur=%s;last=%s;", thingStateChanged.utcTime, thingStateChanged.utcLastTime), cause);
-        }
-    }
-
-    private ThingStateChangedMessage.State parseThingStateChangedEventState(ThingStateChanged changed) {
-        switch (changed.status.toUpperCase()) {
-            case "ONLINE":
-                return ThingStateChangedMessage.State.ONLINE;
-            case "OFFLINE":
-                return ThingStateChangedMessage.State.OFFLINE;
-            default:
-                return ThingStateChangedMessage.State.UN_KNOW;
+            throw new DecodeException(String.format("illegal utc format, occur=%s;last=%s;", data.utcTime, data.utcLastTime), cause);
         }
     }
 
 
-    private static class ThingStateChanged {
+    /**
+     * 数据
+     */
+    private static class Data {
 
         @SerializedName("status")
         String status;

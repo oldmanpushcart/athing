@@ -3,16 +3,16 @@ package com.github.ompc.athing.standard.platform.message;
 import static com.github.ompc.athing.standard.platform.message.ThingMessage.Type.THING_STATE_CHANGED;
 
 /**
- * 设备状态变更消息
+ * 设备状态消息
  */
-public class ThingStateChangedMessage extends ThingMessage {
+public class ThingStateMessage extends ThingMessage {
 
     private final State state;
     private final long lastOnlineTimestamp;
     private final String lastOnlineIp;
 
     /**
-     * 设备状态变更消息
+     * 设备状态消息
      *
      * @param productId           产品ID
      * @param thingId             设备ID
@@ -21,7 +21,7 @@ public class ThingStateChangedMessage extends ThingMessage {
      * @param lastOnlineTimestamp 最后上线时间戳
      * @param lastOnlineIp        最后上线IP地址
      */
-    public ThingStateChangedMessage(
+    public ThingStateMessage(
             String productId, String thingId, long timestamp,
             State state, long lastOnlineTimestamp, String lastOnlineIp
     ) {
@@ -71,12 +71,7 @@ public class ThingStateChangedMessage extends ThingMessage {
         /**
          * 设备离线
          */
-        OFFLINE,
-
-        /**
-         * 未知状态
-         */
-        UN_KNOW
+        OFFLINE;
 
     }
 }

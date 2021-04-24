@@ -3,7 +3,7 @@ package com.github.ompc.athing.aliyun.platform.message.decoder;
 import com.github.ompc.athing.aliyun.framework.component.meta.ThEventMeta;
 import com.github.ompc.athing.aliyun.framework.component.meta.ThPropertyMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
-import com.github.ompc.athing.aliyun.platform.component.message.decoder.ThingMessageDecoder;
+import com.github.ompc.athing.aliyun.platform.message.ThingMessageDecoder;
 import com.github.ompc.athing.aliyun.platform.product.ThProductMeta;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingEvent;
@@ -42,7 +42,7 @@ public class ThingPostMessageDecoder implements ThingMessageDecoder {
     }
 
     @Override
-    public ThingMessage decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception {
+    public ThingMessage[] decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception {
 
         // 检查是否设备上报事件消息
         if (!jmsTopic.matches("^/[^/]+/[^/]+/thing/event/[^/]+/post$")) {
@@ -62,52 +62,14 @@ public class ThingPostMessageDecoder implements ThingMessageDecoder {
 
         // 解码属性上报
         if (jmsTopic.matches("^/[^/]+/[^/]+/thing/event/property/post$")) {
-            return decodePostPropertyMessage(root, post);
+            return new ThingMessage[]{decodePostPropertyMessage(root, post)};
         }
 
         // 解码事件上报
         else {
-            return decodePostEventMessage(root, post);
+            return new ThingMessage[]{decodePostEventMessage(root, post)};
         }
 
-    }
-
-    /**
-     * 从消息体中解码属性快照集合
-     *
-     * @param root 根节点
-     * @param post POST
-     * @return 属性快照集合
-     * @throws DecodeException 解码失败
-     */
-    private Map<String, ThingPropertySnapshot> decodePropertySnapshotMap(JsonObject root, Post post) throws DecodeException {
-        final ThProductMeta productMeta = metas.get(post.productId);
-        final Map<String, ThingPropertySnapshot> propertyValueMap = new HashMap<>();
-
-        for (Map.Entry<String, JsonElement> entry : root.getAsJsonObject("items").entrySet()) {
-            final String identity = entry.getKey();
-
-            final ThPropertyMeta propertyMeta = productMeta.getThPropertyMeta(identity);
-            if (null == propertyMeta) {
-                throw new DecodeException(String.format("property: %s is not define in product: %s!", identity, post.productId));
-            }
-
-            final JsonObject item = entry.getValue().getAsJsonObject();
-
-            // 提取上报时间，若不存在，则以消息创建时间为上报时间
-            final long timestamp = item.has("time")
-                    ? item.get("time").getAsLong()
-                    : post.timestamp;
-
-            final Object value = gson.fromJson(item.get("value"), propertyMeta.getPropertyType());
-            propertyValueMap.put(
-                    identity,
-                    new ThingPropertySnapshot(Identifier.parseIdentity(identity), value, timestamp)
-            );
-
-        }
-
-        return propertyValueMap;
     }
 
     /**
@@ -145,7 +107,7 @@ public class ThingPostMessageDecoder implements ThingMessageDecoder {
             final Object value = gson.fromJson(item.get("value"), propertyMeta.getPropertyType());
             propertySnapshotMap.put(
                     identity,
-                    new ThingPropertySnapshot(Identifier.parseIdentity(identity), value, timestamp)
+                    new ThingPropertySnapshot(propertyMeta.getIdentifier(), value, timestamp)
             );
 
         }
@@ -201,6 +163,9 @@ public class ThingPostMessageDecoder implements ThingMessageDecoder {
     }
 
 
+    /**
+     * 上报
+     */
     private static class Post {
 
         @SerializedName("productKey")

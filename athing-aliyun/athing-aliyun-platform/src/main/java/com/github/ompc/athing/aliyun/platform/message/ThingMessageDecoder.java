@@ -1,4 +1,4 @@
-package com.github.ompc.athing.aliyun.platform.component.message.decoder;
+package com.github.ompc.athing.aliyun.platform.message;
 
 import com.github.ompc.athing.standard.platform.message.ThingMessage;
 
@@ -18,6 +18,6 @@ public interface ThingMessageDecoder {
      * @return 设备消息
      * @throws Exception 解码错误
      */
-    ThingMessage decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception;
+    ThingMessage[] decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception;
 
 }

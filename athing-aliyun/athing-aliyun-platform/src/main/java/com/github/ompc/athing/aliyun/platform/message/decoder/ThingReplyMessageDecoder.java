@@ -2,10 +2,11 @@ package com.github.ompc.athing.aliyun.platform.message.decoder;
 
 import com.github.ompc.athing.aliyun.framework.component.meta.ThServiceMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
-import com.github.ompc.athing.aliyun.platform.component.message.decoder.ThingMessageDecoder;
+import com.github.ompc.athing.aliyun.platform.message.ThingMessageDecoder;
 import com.github.ompc.athing.aliyun.platform.product.ThProductMeta;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.platform.message.ThingMessage;
+import com.github.ompc.athing.standard.platform.message.ThingReplyConfigPushMessage;
 import com.github.ompc.athing.standard.platform.message.ThingReplyPropertySetMessage;
 import com.github.ompc.athing.standard.platform.message.ThingReplyServiceReturnMessage;
 import com.google.gson.Gson;
@@ -38,7 +39,7 @@ public class ThingReplyMessageDecoder implements ThingMessageDecoder {
 
 
     @Override
-    public ThingMessage decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception {
+    public ThingMessage[] decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception {
 
         // 检查是否设备应答返回消息
         if (!jmsTopic.matches("^/[^/]+/[^/]+/thing/downlink/reply/message$")) {
@@ -57,12 +58,17 @@ public class ThingReplyMessageDecoder implements ThingMessageDecoder {
 
         // 解码应答服务调用
         if (reply.topic.matches("^/sys/[^/]+/[^/]+/thing/service/[^/]+_reply$")) {
-            return decodeReplyServiceReturnMessage(root, reply);
+            return new ThingMessage[]{decodeReplyServiceReturnMessage(root, reply)};
         }
 
         // 解码应答属性设置
         else if (reply.topic.matches("^/sys/[^/]+/[^/]+/thing/service/property/set_reply$")) {
-            return decodeReplyPropertySetMessage(root, reply);
+            return new ThingMessage[]{decodeReplyPropertySetMessage(root, reply)};
+        }
+
+        // 解码应答配置推送
+        else if (reply.topic.matches("/sys/[^/]+/[^/]+/thing/config/push_reply")) {
+            return new ThingMessage[]{decodeReplyConfigPushMessage(root, reply)};
         }
 
         // 其他topic不在本次解码范畴
@@ -127,6 +133,24 @@ public class ThingReplyMessageDecoder implements ThingMessageDecoder {
      */
     private ThingReplyPropertySetMessage decodeReplyPropertySetMessage(JsonObject root, Reply reply) {
         return new ThingReplyPropertySetMessage(
+                reply.productId,
+                reply.thingId,
+                reply.timestamp,
+                reply.token,
+                reply.code,
+                reply.message
+        );
+    }
+
+    /**
+     * 解码应答配置推送消息
+     *
+     * @param root  根节点
+     * @param reply 应答
+     * @return 应答配置推送消息
+     */
+    private ThingReplyConfigPushMessage decodeReplyConfigPushMessage(JsonObject root, Reply reply) {
+        return new ThingReplyConfigPushMessage(
                 reply.productId,
                 reply.thingId,
                 reply.timestamp,

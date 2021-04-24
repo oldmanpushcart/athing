@@ -26,11 +26,10 @@ public interface Mqtt {
      * 发布MQTT消息
      *
      * @param topic   主题
-     * @param qos     QoS
      * @param message 消息
      * @return 发布凭证
      */
-    Future<Void> publish(String topic, int qos, MqttMessage message);
+    Future<Void> publish(String topic, MqttMessage message);
 
     /**
      * 订阅MQTT消息

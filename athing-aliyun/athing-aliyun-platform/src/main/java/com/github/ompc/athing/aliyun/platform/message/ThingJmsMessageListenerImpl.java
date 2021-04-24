@@ -1,11 +1,7 @@
 package com.github.ompc.athing.aliyun.platform.message;
 
-import com.github.ompc.athing.aliyun.platform.component.message.decoder.ThingMessageDecoder;
-import com.github.ompc.athing.aliyun.platform.message.decoder.DecodeException;
-import com.github.ompc.athing.aliyun.platform.message.decoder.ThingPostMessageDecoder;
-import com.github.ompc.athing.aliyun.platform.message.decoder.ThingReplyMessageDecoder;
+import com.github.ompc.athing.aliyun.platform.message.decoder.*;
 import com.github.ompc.athing.aliyun.platform.product.ThProductMeta;
-import com.github.ompc.athing.aliyun.platform.message.decoder.ThingStateMessageDecoder;
 import com.github.ompc.athing.standard.platform.message.ThingMessage;
 import com.github.ompc.athing.standard.platform.message.ThingMessageListener;
 import org.slf4j.Logger;
@@ -40,22 +36,25 @@ public class ThingJmsMessageListenerImpl implements MessageListener {
         this.listener = listener;
 
         // 添加默认的解码器
+        decoders.add(new ThingBatchPostMessageDecoder(productMetaMap));
         decoders.add(new ThingPostMessageDecoder(productMetaMap));
         decoders.add(new ThingReplyMessageDecoder(productMetaMap));
         decoders.add(new ThingStateMessageDecoder());
+        decoders.add(new ThingModularMessageDecoder());
+        decoders.add(new ThingLifeCycleMessageDecoder());
 
     }
 
-    private void _onMessage(Message message) throws DecodeException {
+    private void _onMessage(Message _message) throws DecodeException {
 
         // 尝试解析jms-message
         final String jmsTopic;
         final String jmsMessageId;
         final String jmsMessage;
         try {
-            jmsTopic = message.getStringProperty("topic");
-            jmsMessageId = message.getStringProperty("messageId");
-            jmsMessage = new String(message.getBody(byte[].class), UTF_8);
+            jmsTopic = _message.getStringProperty("topic");
+            jmsMessageId = _message.getStringProperty("messageId");
+            jmsMessage = new String(_message.getBody(byte[].class), UTF_8);
             logger.debug("{} receive jms-message id={};topic={};\n{}", this, jmsMessageId, jmsTopic, jmsMessage);
         } catch (JMSException cause) {
             throw new DecodeException("decode jms-message failure!", cause);
@@ -64,9 +63,11 @@ public class ThingJmsMessageListenerImpl implements MessageListener {
         // 尝试进行解码
         for (final ThingMessageDecoder decoder : decoders) {
             try {
-                final ThingMessage thingMessage = decoder.decode(jmsTopic, jmsMessageId, jmsMessage);
-                if (null != thingMessage) {
-                    listener.onMessage(thingMessage);
+                final ThingMessage[] messages = decoder.decode(jmsTopic, jmsMessageId, jmsMessage);
+                if (null != messages && messages.length > 0) {
+                    for (ThingMessage message : messages) {
+                        listener.onMessage(message);
+                    }
                     return;
                 }
             } catch (Exception cause) {

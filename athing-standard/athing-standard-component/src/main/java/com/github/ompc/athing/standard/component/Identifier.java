@@ -1,11 +1,26 @@
 package com.github.ompc.athing.standard.component;
 
-import java.util.Objects;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * 标识
  */
 public class Identifier {
+
+    /**
+     * 保留字集合
+     * <p>
+     * alink协议在支持物模型上有一定的向下兼容性问题，一些成员名会出现与topic约定的重名，
+     * 这里设计保留字机制就是为了解决这类问题
+     * </p>
+     */
+    private static final Set<String> reserves = Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(
+            "batch",
+            "property",
+            "event",
+            "service"
+    )));
 
     /**
      * identity格式正则
@@ -66,6 +81,9 @@ public class Identifier {
     private static String checkMemberId(String memberId) {
         if (!memberId.matches(MEMBER_ID_REGEX)) {
             throw new IllegalArgumentException(String.format("illegal format member-id: %s", memberId));
+        }
+        if (reserves.contains(memberId)) {
+            throw new IllegalArgumentException(String.format("member-id: %s is reserve words", memberId));
         }
         return memberId;
     }

@@ -1,7 +1,7 @@
 package com.github.ompc.athing.aliyun.platform;
 
 import com.github.ompc.athing.aliyun.framework.Constants;
-import com.github.ompc.athing.aliyun.platform.component.message.decoder.ThingMessageDecoder;
+import com.github.ompc.athing.aliyun.platform.message.ThingMessageDecoder;
 import com.github.ompc.athing.aliyun.platform.product.ThProductMeta;
 import com.github.ompc.athing.standard.platform.ThingPlatformException;
 import com.github.ompc.athing.standard.platform.message.ThingMessageListener;

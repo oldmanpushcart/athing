@@ -24,7 +24,7 @@ public class MqttThingComImpl implements MqttThingCom {
     public Mqtt getMqtt() {
         return new Mqtt() {
             @Override
-            public Future<Void> publish(String topic, int qos, MqttMessage message) {
+            public Future<Void> publish(String topic, MqttMessage message) {
                 return client.publish(topic, new ThingMqttMessage(message.getQos(), message.getData()));
             }
 

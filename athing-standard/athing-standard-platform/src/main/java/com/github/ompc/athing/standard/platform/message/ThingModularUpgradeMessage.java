@@ -1,11 +1,11 @@
 package com.github.ompc.athing.standard.platform.message;
 
-import static com.github.ompc.athing.standard.platform.message.ThingMessage.Type.THING_MODULE_UPGRADE_RESULT;
+import static com.github.ompc.athing.standard.platform.message.ThingMessage.Type.THING_MODULAR_UPGRADE;
 
 /**
  * 设备模块组件升级结果消息
  */
-public class ThingModularUpgradeRetMessage extends ThingMessage {
+public class ThingModularUpgradeMessage extends ThingMessage {
 
     private final String moduleId;
     private final String srcVersion;
@@ -25,11 +25,11 @@ public class ThingModularUpgradeRetMessage extends ThingMessage {
      * @param result     升级结果
      * @param desc       结果描述
      */
-    public ThingModularUpgradeRetMessage(
+    public ThingModularUpgradeMessage(
             String productId, String thingId, long timestamp,
             String moduleId, String srcVersion, String dstVersion, Result result, String desc
     ) {
-        super(THING_MODULE_UPGRADE_RESULT, productId, thingId, timestamp);
+        super(THING_MODULAR_UPGRADE, productId, thingId, timestamp);
         this.moduleId = moduleId;
         this.srcVersion = srcVersion;
         this.dstVersion = dstVersion;
@@ -98,9 +98,9 @@ public class ThingModularUpgradeRetMessage extends ThingMessage {
         FAILURE,
 
         /**
-         * 未知状态
+         * 升级取消
          */
-        UN_KNOW
+        CANCELED
 
     }
 }

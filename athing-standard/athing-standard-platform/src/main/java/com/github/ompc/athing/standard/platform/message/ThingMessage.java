@@ -79,7 +79,7 @@ public class ThingMessage {
         /**
          * 设备配置推送应答
          */
-        THING_REPLY_PUSH_CONFIG,
+        THING_REPLY_CONFIG_PUSH,
 
         /**
          * 设备报告事件
@@ -97,9 +97,19 @@ public class ThingMessage {
         THING_STATE_CHANGED,
 
         /**
-         * 设备模块升级结果
+         * 设备模块升级
          */
-        THING_MODULE_UPGRADE_RESULT
+        THING_MODULAR_UPGRADE,
+
+        /**
+         * 设备模块报告
+         */
+        THING_MODULAR_REPORT,
+
+        /**
+         * 设备生命周期
+         */
+        THING_LIFE_CYCLE;
 
     }
 
