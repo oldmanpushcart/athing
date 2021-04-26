@@ -1,29 +1,5 @@
 package com.github.ompc.athing.aliyun.thing.executor.impl.config;
 
-import com.github.ompc.athing.aliyun.framework.util.FeatureCodec;
-import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
-import com.github.ompc.athing.aliyun.thing.ThingImpl;
-import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
-import com.github.ompc.athing.aliyun.thing.op.AlinkReply;
-import com.github.ompc.athing.aliyun.thing.op.ThingMessenger;
-import com.github.ompc.athing.standard.thing.ThingException;
-import com.github.ompc.athing.standard.thing.config.ThingConfigListener;
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-
-import static com.github.ompc.athing.aliyun.framework.Constants.FEATURE_KEY_PUSH_CONFIG_REPLY_CONFIG_ID;
-import static com.github.ompc.athing.aliyun.framework.Constants.FEATURE_KEY_PUSH_CONFIG_REPLY_SIGN;
-import static com.github.ompc.athing.aliyun.thing.op.AlinkReply.ALINK_REPLY_REQUEST_ERROR;
-import static com.github.ompc.athing.aliyun.thing.op.AlinkReply.success;
-import static com.github.ompc.athing.standard.thing.config.ThingConfig.ConfigScope.PRODUCT;
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 /**
  * 设备配置推送执行器
  */

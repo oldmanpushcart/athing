@@ -1,34 +1,5 @@
 package com.github.ompc.athing.aliyun.thing.executor.impl.config;
 
-import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
-import com.github.ompc.athing.aliyun.framework.util.MapObject;
-import com.github.ompc.athing.aliyun.thing.ThingExecutor;
-import com.github.ompc.athing.aliyun.thing.ThingImpl;
-import com.github.ompc.athing.aliyun.thing.ThingPromise;
-import com.github.ompc.athing.aliyun.thing.ThingReplyPromise;
-import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
-import com.github.ompc.athing.aliyun.thing.op.AlinkReply;
-import com.github.ompc.athing.aliyun.thing.op.ThingMessenger;
-import com.github.ompc.athing.aliyun.thing.op.ThingReplyImpl;
-import com.github.ompc.athing.standard.thing.ThingException;
-import com.github.ompc.athing.standard.thing.ThingFuture;
-import com.github.ompc.athing.standard.thing.ThingReply;
-import com.github.ompc.athing.standard.thing.ThingReplyFuture;
-import com.github.ompc.athing.standard.thing.config.ThingConfig;
-import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
-import com.github.ompc.athing.standard.thing.config.ThingConfigListener;
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
-import com.google.gson.reflect.TypeToken;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateToken;
-import static com.github.ompc.athing.standard.thing.config.ThingConfig.ConfigScope.PRODUCT;
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 /**
  * 设备配置主动请求执行器
  */

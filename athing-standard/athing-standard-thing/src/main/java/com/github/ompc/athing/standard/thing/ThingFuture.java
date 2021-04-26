@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- * 设备Future
+ * 设备凭证
  * <pre>
  * <table>
  *     <tr>

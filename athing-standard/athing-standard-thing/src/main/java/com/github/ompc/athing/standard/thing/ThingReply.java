@@ -6,6 +6,13 @@ package com.github.ompc.athing.standard.thing;
 public interface ThingReply<T> {
 
     /**
+     * 获取应答令牌
+     *
+     * @return 应答令牌
+     */
+    String getToken();
+
+    /**
      * 是否应答成功
      *
      * @return TRUE|FALSE

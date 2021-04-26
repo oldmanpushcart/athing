@@ -11,8 +11,9 @@ import com.github.ompc.athing.aliyun.qatest.puppet.component.EchoThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.QaThingComImpl;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.ResourceThingComImpl;
-import com.github.ompc.athing.aliyun.thing.ThingAccess;
 import com.github.ompc.athing.aliyun.thing.ThingBoot;
+import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
+import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccessImpl;
 import com.github.ompc.athing.component.dmgr.api.DmgrThingCom;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.platform.ThingPlatform;
@@ -49,7 +50,7 @@ public class PuppetSupport {
             properties.getProperty("athing.thing.id");
     protected static final String THING_SERVER_URL =
             properties.getProperty("athing.thing.server-url");
-    protected static final ThingAccess THING_ACCESS = new ThingAccess(
+    protected static final ThingAccess THING_ACCESS = new ThingAccessImpl(
             PRODUCT_ID,
             THING_ID,
             properties.getProperty("athing.thing.secret")

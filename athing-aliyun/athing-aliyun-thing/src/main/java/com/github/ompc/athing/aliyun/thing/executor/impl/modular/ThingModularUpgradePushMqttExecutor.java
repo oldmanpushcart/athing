@@ -1,31 +1,5 @@
 package com.github.ompc.athing.aliyun.thing.executor.impl.modular;
 
-import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
-import com.github.ompc.athing.aliyun.framework.util.MapObject;
-import com.github.ompc.athing.aliyun.thing.ThingImpl;
-import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
-import com.github.ompc.athing.aliyun.thing.op.ThingMessenger;
-import com.github.ompc.athing.aliyun.thing.util.FileUtils;
-import com.github.ompc.athing.aliyun.thing.util.HttpUtils;
-import com.github.ompc.athing.standard.thing.ThingException;
-import com.github.ompc.athing.standard.thing.boot.Modular;
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static com.github.ompc.athing.aliyun.thing.util.StringUtils.generateToken;
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-
 /**
  * 平台推送设备固件升级执行器
  * <a href="https://help.aliyun.com/document_detail/89307.html">固件升级</a>

@@ -1,30 +1,5 @@
 package com.github.ompc.athing.aliyun.thing.executor.impl;
 
-import com.github.ompc.athing.aliyun.framework.component.meta.ThServiceMeta;
-import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
-import com.github.ompc.athing.aliyun.thing.ThingImpl;
-import com.github.ompc.athing.aliyun.thing.container.ThComStub;
-import com.github.ompc.athing.aliyun.thing.executor.MqttExecutor;
-import com.github.ompc.athing.aliyun.thing.op.ThingMessenger;
-import com.github.ompc.athing.standard.component.Identifier;
-import com.github.ompc.athing.standard.thing.ThingException;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.LinkedHashSet;
-import java.util.stream.Collectors;
-
-import static com.github.ompc.athing.aliyun.framework.util.GsonFactory.getEmptyIfNull;
-import static com.github.ompc.athing.aliyun.thing.op.AlinkReply.*;
-import static com.github.ompc.athing.aliyun.thing.op.ThingMessenger.MQTT_QOS_AT_LEAST_ONCE;
-import static com.github.ompc.athing.aliyun.thing.op.ThingMessenger.MQTT_QOS_AT_MOST_ONCE;
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 /**
  * 服务调用MQTT执行器
  */

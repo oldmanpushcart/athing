@@ -1,5 +1,10 @@
 package com.github.ompc.athing.standard.thing;
 
+/**
+ * 设备令牌凭证
+ *
+ * @param <V> 类型
+ */
 public interface ThingTokenFuture<V> extends ThingFuture<V> {
 
     /**

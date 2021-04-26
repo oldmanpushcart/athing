@@ -1,19 +1,22 @@
 package com.github.ompc.athing.aliyun.thing;
 
-import com.github.ompc.athing.aliyun.thing.component.access.impl.AccessThingComImpl;
-import com.github.ompc.athing.aliyun.thing.component.alink.impl.AlinkThingComImpl;
-import com.github.ompc.athing.aliyun.thing.component.mqtt.impl.MqttThingComImpl;
 import com.github.ompc.athing.aliyun.thing.container.ThingComContainer;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComLoader;
-import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttClient;
-import com.github.ompc.athing.aliyun.thing.mqtt.paho.ThingMqttClientImplByPaho;
 import com.github.ompc.athing.aliyun.thing.op.ThingOpImpl;
+import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntime;
+import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntimes;
+import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
+import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutor;
+import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutorImpl;
+import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
+import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessengerImpl;
+import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
+import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttClient;
+import com.github.ompc.athing.aliyun.thing.runtime.mqtt.paho.ThingMqttClientImplByPaho;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
-import com.github.ompc.athing.standard.thing.ThingFuture;
 import com.github.ompc.athing.standard.thing.ThingOp;
-import com.github.ompc.athing.standard.thing.config.ThingConfigListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,13 +31,12 @@ public class ThingImpl implements Thing {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final URI remote;
     private final ThingAccess access;
-    private final ThingBootOption option;
 
     private final ThingComContainer container;
     private final ThingExecutor executor;
     private final ThingMqttClient client;
+    private final ThingMessenger messenger;
     private final ThingOp op;
     private final String _string;
 
@@ -44,15 +46,13 @@ public class ThingImpl implements Thing {
               final ThingAccess access,
               final ThingBootOption option,
               final Executor executor) throws ThingException {
-        this.remote = remote;
         this.access = access;
-        this.option = option;
         this._string = String.format("/%s/%s", access.getProductId(), access.getThingId());
-
-        this.executor = new ThingExecutor(this, executor);
+        this.executor = new ThingExecutorImpl(this, executor);
         this.container = new ThingComContainer(this);
         this.client = new ThingMqttClientImplByPaho(remote, access, option, this, this.executor);
-        this.op = new ThingOpImpl(option, this, container, this.executor, this.client);
+        this.messenger = new ThingMessengerImpl(option, this, this.executor, this.client);
+        this.op = new ThingOpImpl(this, this.container, this.executor, this.client, this.messenger);
     }
 
     @Override
@@ -67,14 +67,27 @@ public class ThingImpl implements Thing {
      * @throws ThingException 初始化失败
      */
     protected Thing init(Set<ThingComLoader> loaders) throws ThingException {
+        ThingRuntimes.append(this, new ThingRuntime() {
+            @Override
+            public ThingMessenger getThingMessenger() {
+                return messenger;
+            }
 
-        // 追加默认组件
-        loaders.add((productId, thingId) -> new ThingCom[]{
-                new AccessThingComImpl(access),
-                new AlinkThingComImpl(),
-                new MqttThingComImpl(client)
+            @Override
+            public ThingMqtt getThingMqtt() {
+                return client;
+            }
+
+            @Override
+            public ThingAccess getThingAccess() {
+                return access;
+            }
+
+            @Override
+            public ThingExecutor getThingExecutor() {
+                return executor;
+            }
         });
-
         container.initializing(loaders);
         return this;
     }
@@ -121,11 +134,6 @@ public class ThingImpl implements Thing {
 
         // 断开连接
         client.destroy();
-
-        // 销毁设备操作
-        if (op instanceof ThingOpImpl) {
-            ((ThingOpImpl) op).destroy();
-        }
 
         // 销毁组件容器
         container.destroy();

@@ -4,10 +4,10 @@ import com.github.ompc.athing.aliyun.framework.util.IOUtils;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComBootLoader;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComJarBootLoader;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComLoader;
+import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
-import com.github.ompc.athing.standard.thing.config.ThingConfigListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

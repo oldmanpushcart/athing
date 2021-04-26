@@ -1,6 +1,5 @@
 package com.github.ompc.athing.aliyun.thing.util;
 
-import com.github.ompc.athing.aliyun.thing.ThingPromise;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingFuture;
 import com.github.ompc.athing.standard.thing.ThingFutureListener;

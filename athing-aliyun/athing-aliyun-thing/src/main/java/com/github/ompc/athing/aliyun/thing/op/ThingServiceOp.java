@@ -4,8 +4,9 @@ import com.github.ompc.athing.aliyun.framework.component.meta.ThServiceMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.container.ThingComContainer;
-import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttClient;
-import com.github.ompc.athing.aliyun.thing.mqtt.ThingMqttMessage;
+import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
+import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
+import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttMessage;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
@@ -15,10 +16,11 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.github.ompc.athing.aliyun.thing.op.AlinkReply.*;
-import static com.github.ompc.athing.aliyun.thing.op.ThingMessenger.MQTT_QOS_AT_LEAST_ONCE;
-import static com.github.ompc.athing.aliyun.thing.op.ThingMessenger.MQTT_QOS_AT_MOST_ONCE;
+import static com.github.ompc.athing.aliyun.thing.runtime.messenger.DefaultThingReply.*;
+import static com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttMessage.MQTT_QOS_AT_LEAST_ONCE;
+import static com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttMessage.MQTT_QOS_AT_MOST_ONCE;
 import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ThingServiceOp {
 
@@ -30,19 +32,19 @@ public class ThingServiceOp {
     private final JsonParser parser = new JsonParser();
     private final String _string;
 
-    public ThingServiceOp(Thing thing, ThingComContainer container, ThingMqttClient client, ThingMessenger messenger) throws ThingException {
+    public ThingServiceOp(Thing thing, ThingComContainer container, ThingMqtt mqtt, ThingMessenger messenger) throws ThingException {
         this.container = container;
         this.messenger = messenger;
         this._string = format("%s/op/service", thing);
 
         // 订阅同步服务调用消息
-        client.syncSubscribe(
+        mqtt.syncSubscribe(
                 format("/ext/rrpc/+/sys/%s/%s/thing/service/+", thing.getProductId(), thing.getThingId()),
                 (topic, message) -> service(true, topic, message)
         );
 
         // 订阅异步服务调用消息
-        client.syncSubscribe(
+        mqtt.syncSubscribe(
                 format("/sys/%s/%s/thing/service/+", thing.getProductId(), thing.getThingId()),
                 (topic, message) -> {
 
@@ -82,7 +84,7 @@ public class ThingServiceOp {
 
     private void service(boolean isSync, String topic, ThingMqttMessage message) {
 
-        final JsonObject json = parser.parse(message.getStringData()).getAsJsonObject();
+        final JsonObject json = parser.parse(message.getStringData(UTF_8)).getAsJsonObject();
         final String token = json.get("id").getAsString();
         final String identity = parseIdentity(json);
         final String rTopic = isSync ? topic : topic + "_reply";
@@ -90,8 +92,8 @@ public class ThingServiceOp {
 
         // 不合法的标识值
         if (!Identifier.test(identity)) {
-            messenger.post(rTopic, qos, failure(token, ALINK_REPLY_REQUEST_ERROR, format("identity: %s is illegal", identity)));
-            logger.warn("{} invoke failure: illegal identity, token={};identity={};", ThingServiceOp.this, token, identity);
+            messenger.post(rTopic, failure(token, ALINK_REPLY_REQUEST_ERROR, format("identity: %s is illegal", identity)));
+            logger.warn("{} invoke failure: illegal identity, token={};identity={};", this, token, identity);
             return;
         }
 
@@ -100,15 +102,15 @@ public class ThingServiceOp {
         // 过滤掉未提供的组件
         final ThComStub thComStub = container.getThComStub(identifier.getComponentId());
         if (null == thComStub) {
-            messenger.post(rTopic, qos, failure(token, ALINK_REPLY_REQUEST_ERROR, format("component: %s not provided", identifier.getComponentId())));
-            logger.warn("{} invoke failure: component not provided, token={};identity={};", ThingServiceOp.this, token, identity);
+            messenger.post(rTopic, failure(token, ALINK_REPLY_REQUEST_ERROR, format("component: %s not provided", identifier.getComponentId())));
+            logger.warn("{} invoke failure: component not provided, token={};identity={};", this, token, identity);
             return;
         }
 
         // 过滤掉未提供的服务
         final ThServiceMeta thServiceMeta = thComStub.getThComMeta().getThServiceMeta(identifier);
         if (null == thServiceMeta) {
-            messenger.post(rTopic, qos, failure(token, ALINK_REPLY_SERVICE_NOT_PROVIDED, format("service: %s not provided", identity)));
+            messenger.post(rTopic, failure(token, ALINK_REPLY_SERVICE_NOT_PROVIDED, format("service: %s not provided", identity)));
             logger.warn("{} invoke failure: service is not provided, token={};identity={};", ThingServiceOp.this, token, identity);
             return;
         }
@@ -122,12 +124,12 @@ public class ThingServiceOp {
                     (name, type) -> gson.fromJson(argumentJson.get(name), type)
             );
         } catch (Throwable cause) {
-            messenger.post(rTopic, qos, failure(token, ALINK_REPLY_PROCESS_ERROR, cause.getLocalizedMessage()));
+            messenger.post(rTopic, failure(token, ALINK_REPLY_PROCESS_ERROR, cause.getLocalizedMessage()));
             logger.warn("{} invoke failure: invoke error, token={};identity={};", ThingServiceOp.this, token, identity, cause);
             return;
         }
 
-        messenger.post(rTopic, qos, success(token, "success", result));
+        messenger.post(rTopic, success(token, result));
         logger.info("{} invoke success, token={};identity={};", ThingServiceOp.this, token, identity);
 
 
