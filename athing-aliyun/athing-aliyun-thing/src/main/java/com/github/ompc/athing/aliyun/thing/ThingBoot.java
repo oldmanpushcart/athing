@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Executor;
 
 /**
  * 设备启动器
@@ -38,12 +37,6 @@ public class ThingBoot {
      * 设备启动参数
      */
     private ThingBootOption option = new ThingBootOption();
-
-    /**
-     * 线程池
-     */
-    private Executor executor;
-
 
     public ThingBoot(URI remote, ThingAccess access) {
         this.remote = Objects.requireNonNull(remote, "remote");
@@ -72,14 +65,9 @@ public class ThingBoot {
         return this;
     }
 
-    public ThingBoot executor(Executor executor) {
-        this.executor = executor;
-        return this;
-    }
-
     public Thing boot() throws ThingException {
 
-        final ThingImpl thing = new ThingImpl(remote, access, option, executor);
+        final ThingImpl thing = new ThingImpl(remote, access, option);
         try {
 
             // 初始化设备

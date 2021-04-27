@@ -44,15 +44,14 @@ public class ThingImpl implements Thing {
 
     ThingImpl(final URI remote,
               final ThingAccess access,
-              final ThingBootOption option,
-              final Executor executor) throws ThingException {
+              final ThingBootOption option) throws ThingException {
         this.access = access;
         this._string = String.format("/%s/%s", access.getProductId(), access.getThingId());
-        this.executor = new ThingExecutorImpl(this, executor);
+        this.executor = new ThingExecutorImpl(this, option);
         this.container = new ThingComContainer(this);
-        this.client = new ThingMqttClientImplByPaho(remote, access, option, this, this.executor);
-        this.messenger = new ThingMessengerImpl(option, this, this.executor, this.client);
-        this.op = new ThingOpImpl(this, this.container, this.executor, this.client, this.messenger);
+        this.client = new ThingMqttClientImplByPaho(remote, access, option, this, executor);
+        this.messenger = new ThingMessengerImpl(option, this, executor, client);
+        this.op = new ThingOpImpl(this, container, executor, client, messenger);
     }
 
     @Override
@@ -137,6 +136,11 @@ public class ThingImpl implements Thing {
 
         // 销毁组件容器
         container.destroy();
+
+        // 销毁设备执行引擎
+        if (executor instanceof ThingExecutorImpl) {
+            ((ThingExecutorImpl) executor).shutdown();
+        }
 
         logger.info("{} is destroyed!", this);
     }

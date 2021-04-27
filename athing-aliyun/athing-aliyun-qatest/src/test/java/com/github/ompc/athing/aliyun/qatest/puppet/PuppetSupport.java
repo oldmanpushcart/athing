@@ -132,7 +132,6 @@ public class PuppetSupport {
 
     private static Thing initPuppetThing() throws Exception {
         final Thing thing = new ThingBoot(new URI(THING_SERVER_URL), THING_ACCESS)
-                .executor(Executors.newFixedThreadPool(20))
                 .load(new File("./src/test/resources/lib/athing-component-dmgr-core-1.0.0-SNAPSHOT-jar-with-dependencies-for-qatest.jar"))
                 .load(new QaThingComImpl(),
                         new ResourceThingComImpl(),

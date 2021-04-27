@@ -63,13 +63,13 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
         this.thing = thing;
         this.executor = executor;
         this.pahoClient = new PahoClientFactory().make(remote, access, option);
-        this._string = String.format("%s/client", thing);
+        this._string = String.format("%s/mqtt/paho/client", thing);
 
         // 设置回调
         pahoClient.setCallback(new GroupPahoCallback(new ArrayList<MqttCallbackExtended>() {{
 
             // 主题自动订阅
-            add(new AutoSubTripPahoCallback(null, pahoClient, trips));
+            add(new AutoSubTripPahoCallback(ThingMqttClientImplByPaho.this, pahoClient, trips));
 
             // 断线手动重连
             add(new PahoCallbackAdapter() {

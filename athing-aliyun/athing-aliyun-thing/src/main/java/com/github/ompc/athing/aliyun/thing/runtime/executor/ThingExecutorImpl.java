@@ -1,12 +1,12 @@
 package com.github.ompc.athing.aliyun.thing.runtime.executor;
 
+import com.github.ompc.athing.aliyun.thing.ThingBootOption;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * 设备执行器实现
@@ -14,44 +14,59 @@ import java.util.concurrent.TimeUnit;
 public class ThingExecutorImpl implements ThingExecutor {
 
     private final static ThreadLocal<Strategy> strategyRef = new ThreadLocal<>();
-
-    /**
-     * 内联执行引擎
-     */
     private final static Executor inline = Runnable::run;
 
-    /**
-     * 设备
-     */
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
-
-    /**
-     * 独立执行引擎
-     */
-    private final Executor executor;
-
-    /**
-     * 设备定时器
-     */
+    private final ExecutorService workers;
     private final ThingTimer timer;
+    private final String _string;
 
     /**
      * 设备执行器实现
      *
-     * @param thing    设备
-     * @param executor 工作线程池
+     * @param thing  设备
+     * @param option 启动参数
      */
-    public ThingExecutorImpl(Thing thing, Executor executor) {
+    public ThingExecutorImpl(Thing thing, ThingBootOption option) {
         this.thing = thing;
-        this.executor = executor;
-        this.timer = begin(executor, new ThingTimer());
+        this._string = String.format("%s/executor", thing);
+        this.workers = initWorkers(option);
+        this.timer = initTimer(workers);
     }
 
-    private ThingTimer begin(Executor executor, ThingTimer timer) {
-        executor.execute(() -> {
+    @Override
+    public String toString() {
+        return _string;
+    }
+
+    /**
+     * 启动工作线程池
+     *
+     * @param option 启动参数
+     * @return 工作线程池
+     */
+    private ExecutorService initWorkers(ThingBootOption option) {
+        return Executors.newFixedThreadPool(option.getThreads(), r -> {
+            final Thread worker = new Thread(r, String.format("%s/worker/daemon", this));
+            worker.setDaemon(true);
+            return worker;
+        });
+    }
+
+    /**
+     * 启动设备定时器
+     *
+     * @param worker 工作线程池
+     * @return 设备定时器
+     */
+    private ThingTimer initTimer(ExecutorService worker) {
+        final ThingTimer timer = new ThingTimer();
+        worker.execute(() -> {
             final Thread thread = Thread.currentThread();
             thread.setName(String.format("%s/timer", this));
             try {
+                logger.info("{}/timer is running!", this);
                 while (!Thread.currentThread().isInterrupted()) {
                     timer.select(System.currentTimeMillis())
                             .forEach(expire -> execute(expire.getTask()));
@@ -60,6 +75,7 @@ public class ThingExecutorImpl implements ThingExecutor {
                 Thread.currentThread().interrupt();
             } finally {
                 timer.cancel();
+                logger.info("{}/timer is shutdown!", this);
             }
         });
         return timer;
@@ -136,7 +152,7 @@ public class ThingExecutorImpl implements ThingExecutor {
     private Executor choice() {
         return Strategy.INLINE == strategyRef.get()
                 ? inline
-                : executor;
+                : workers;
     }
 
     @Override
@@ -149,6 +165,16 @@ public class ThingExecutorImpl implements ThingExecutor {
                 strategyRef.remove();
             }
         });
+    }
+
+    /**
+     * 关闭设备执行引擎
+     */
+    public void shutdown() {
+        if (null != workers) {
+            workers.shutdownNow();
+        }
+        logger.info("{} is shutdown!", this);
     }
 
     /**
