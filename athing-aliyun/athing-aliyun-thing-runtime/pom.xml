@@ -15,6 +15,7 @@
             <groupId>com.github.ompc.athing.standard</groupId>
             <artifactId>athing-standard-thing</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

@@ -6,8 +6,12 @@ import com.github.ompc.athing.aliyun.thing.op.ThingOpImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntime;
 import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntimes;
 import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
+import com.github.ompc.athing.aliyun.thing.runtime.alink.Alink;
+import com.github.ompc.athing.aliyun.thing.runtime.alink.AlinkImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutorImpl;
+import com.github.ompc.athing.aliyun.thing.runtime.logger.ThingLogger;
+import com.github.ompc.athing.aliyun.thing.runtime.logger.ThingLoggerImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessengerImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
@@ -22,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Set;
-import java.util.concurrent.Executor;
 
 /**
  * 阿里云设备实现
@@ -37,6 +40,7 @@ public class ThingImpl implements Thing {
     private final ThingExecutor executor;
     private final ThingMqttClient client;
     private final ThingMessenger messenger;
+    private final Alink alink;
     private final ThingOp op;
     private final String _string;
 
@@ -51,7 +55,8 @@ public class ThingImpl implements Thing {
         this.container = new ThingComContainer(this);
         this.client = new ThingMqttClientImplByPaho(remote, access, option, this, executor);
         this.messenger = new ThingMessengerImpl(option, this, executor, client);
-        this.op = new ThingOpImpl(this, container, executor, client, messenger);
+        this.alink = new AlinkImpl();
+        this.op = new ThingOpImpl(this, container, executor, client, messenger, alink);
     }
 
     @Override
@@ -86,6 +91,23 @@ public class ThingImpl implements Thing {
             public ThingExecutor getThingExecutor() {
                 return executor;
             }
+
+            @Override
+            public ThingLogger getThingLogger(Class<?> clazz) {
+                return new ThingLoggerImpl(LoggerFactory.getLogger(clazz));
+            }
+
+            @Override
+            public ThingLogger getThingLogger(String name) {
+                return new ThingLoggerImpl(LoggerFactory.getLogger(name));
+            }
+
+            @Override
+            public Alink getAlink() {
+                return alink;
+            }
+
+
         });
         container.initializing(loaders);
         return this;

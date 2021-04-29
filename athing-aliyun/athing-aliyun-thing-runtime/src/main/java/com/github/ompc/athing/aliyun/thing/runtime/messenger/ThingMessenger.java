@@ -1,7 +1,6 @@
 package com.github.ompc.athing.aliyun.thing.runtime.messenger;
 
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingPromise;
-import com.github.ompc.athing.standard.thing.ThingFuture;
 import com.github.ompc.athing.standard.thing.ThingReply;
 import com.github.ompc.athing.standard.thing.ThingReplyFuture;
 import com.github.ompc.athing.standard.thing.ThingTokenFuture;
@@ -16,10 +15,17 @@ public interface ThingMessenger {
      *
      * @param topic 投递主题
      * @param data  令牌数据
-     * @return 发布凭证
+     * @return 投递凭证
      */
     ThingTokenFuture<Void> post(String topic, TokenData data);
 
+    /**
+     * 投递
+     *
+     * @param topic 投递主题
+     * @param reply 投递数据
+     * @return 投递凭证
+     */
     ThingTokenFuture<Void> post(String topic, ThingReply<?> reply);
 
     /**
