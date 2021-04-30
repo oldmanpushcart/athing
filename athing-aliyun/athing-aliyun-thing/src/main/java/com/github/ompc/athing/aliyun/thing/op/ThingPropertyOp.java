@@ -5,7 +5,7 @@ import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.container.ThingComContainer;
-import com.github.ompc.athing.aliyun.thing.runtime.alink.Alink;
+import com.github.ompc.athing.aliyun.thing.runtime.alink.ThingReplyImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingPromise;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttClient;
@@ -17,6 +17,7 @@ import com.github.ompc.athing.standard.thing.ThingReplyFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,17 +37,15 @@ public class ThingPropertyOp {
     private final Thing thing;
     private final ThingComContainer container;
     private final ThingMessenger messenger;
-    private final Alink alink;
 
     private final Gson gson = GsonFactory.getGson();
     private final JsonParser parser = new JsonParser();
     private final String _string;
 
-    public ThingPropertyOp(Thing thing, ThingComContainer container, ThingMqttClient client, ThingMessenger messenger, Alink alink) throws ThingException {
+    public ThingPropertyOp(Thing thing, ThingComContainer container, ThingMqttClient client, ThingMessenger messenger) throws ThingException {
         this.thing = thing;
         this.container = container;
         this.messenger = messenger;
-        this.alink = alink;
         this._string = format("%s/op/property", thing);
 
         // 订阅属性提交应答MQTT消息
@@ -54,7 +53,12 @@ public class ThingPropertyOp {
                 format("/sys/%s/%s/thing/event/property/post_reply", thing.getProductId(), thing.getThingId()),
                 (topic, message) -> {
 
-                    final ThingReply<Void> reply = alink.deserializeReply(message.getStringData(UTF_8));
+                    // 应答
+                    final ThingReply<Void> reply = gson.fromJson(
+                            message.getStringData(UTF_8),
+                            new TypeToken<ThingReplyImpl<Void>>() {
+                            }.getType()
+                    );
 
                     final ThingPromise<ThingReply<Void>> promise = messenger.reply(reply.getToken());
                     if (null != promise) {
@@ -74,7 +78,7 @@ public class ThingPropertyOp {
                     final JsonObject requestJsonObject = parser.parse(message.getStringData(UTF_8)).getAsJsonObject();
                     final String token = requestJsonObject.get("id").getAsString();
                     final Set<String> successIds = setProperties(token, requestJsonObject.getAsJsonObject("params"));
-                    messenger.post(topic + "_reply", alink.successReply(token))
+                    messenger.post(topic + "_reply", ThingReplyImpl.success(token))
                             .onSuccess(f -> logger.info("{} property set success, token={};identities={};", this, token, successIds));
                 }
         );

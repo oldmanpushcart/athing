@@ -1,7 +1,6 @@
 package com.github.ompc.athing.aliyun.thing.runtime;
 
 import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
-import com.github.ompc.athing.aliyun.thing.runtime.alink.Alink;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.ompc.athing.aliyun.thing.runtime.logger.ThingLogger;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
@@ -55,12 +54,5 @@ public interface ThingRuntime {
      * @return 日志
      */
     ThingLogger getThingLogger(String name);
-
-    /**
-     * 获取alink协议支撑
-     *
-     * @return alink协议支撑
-     */
-    Alink getAlink();
 
 }

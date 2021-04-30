@@ -6,8 +6,6 @@ import com.github.ompc.athing.aliyun.thing.op.ThingOpImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntime;
 import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntimes;
 import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
-import com.github.ompc.athing.aliyun.thing.runtime.alink.Alink;
-import com.github.ompc.athing.aliyun.thing.runtime.alink.AlinkImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutorImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.logger.ThingLogger;
@@ -40,7 +38,6 @@ public class ThingImpl implements Thing {
     private final ThingExecutor executor;
     private final ThingMqttClient client;
     private final ThingMessenger messenger;
-    private final Alink alink;
     private final ThingOp op;
     private final String _string;
 
@@ -55,8 +52,7 @@ public class ThingImpl implements Thing {
         this.container = new ThingComContainer(this);
         this.client = new ThingMqttClientImplByPaho(remote, access, option, this, executor);
         this.messenger = new ThingMessengerImpl(option, this, executor, client);
-        this.alink = new AlinkImpl();
-        this.op = new ThingOpImpl(this, container, executor, client, messenger, alink);
+        this.op = new ThingOpImpl(this, container, executor, client, messenger);
     }
 
     @Override
@@ -101,12 +97,6 @@ public class ThingImpl implements Thing {
             public ThingLogger getThingLogger(String name) {
                 return new ThingLoggerImpl(LoggerFactory.getLogger(name));
             }
-
-            @Override
-            public Alink getAlink() {
-                return alink;
-            }
-
 
         });
         container.initializing(loaders);

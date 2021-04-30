@@ -2,7 +2,7 @@ package com.github.ompc.athing.aliyun.thing.op;
 
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
-import com.github.ompc.athing.aliyun.thing.runtime.alink.Alink;
+import com.github.ompc.athing.aliyun.thing.runtime.alink.ThingReplyImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingPromise;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
@@ -12,6 +12,7 @@ import com.github.ompc.athing.standard.thing.ThingException;
 import com.github.ompc.athing.standard.thing.ThingReply;
 import com.github.ompc.athing.standard.thing.ThingReplyFuture;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,15 +29,13 @@ public class ThingEventOp {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
     private final ThingMessenger messenger;
-    private final Alink alink;
 
     private final Gson gson = GsonFactory.getGson();
     private final String _string;
 
-    public ThingEventOp(Thing thing, ThingMqtt mqtt, ThingMessenger messenger, Alink alink) throws ThingException {
+    public ThingEventOp(Thing thing, ThingMqtt mqtt, ThingMessenger messenger) throws ThingException {
         this.thing = thing;
         this.messenger = messenger;
-        this.alink = alink;
         this._string = format("%s/op/event", thing);
 
         mqtt.syncSubscribe(
@@ -48,7 +47,13 @@ public class ThingEventOp {
                         return;
                     }
 
-                    final ThingReply<Void> reply = alink.deserializeReply(message.getStringData(UTF_8));
+                    // 应答
+                    final ThingReply<Void> reply = gson.fromJson(
+                            message.getStringData(UTF_8),
+                            new TypeToken<ThingReplyImpl<Void>>() {
+                            }.getType()
+                    );
+
                     final ThingPromise<ThingReply<Void>> promise = messenger.reply(reply.getToken());
                     if (null != promise) {
                         promise.trySuccess(reply);

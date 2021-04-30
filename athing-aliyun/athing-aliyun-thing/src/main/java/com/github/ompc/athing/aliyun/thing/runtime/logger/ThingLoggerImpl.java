@@ -49,4 +49,29 @@ public class ThingLoggerImpl implements ThingLogger {
             logger.error(format, supplier.get());
         }
     }
+
+    @Override
+    public void trace(String format, Object... arguments) {
+        logger.trace(format, arguments);
+    }
+
+    @Override
+    public void debug(String format, Object... arguments) {
+        logger.debug(format, arguments);
+    }
+
+    @Override
+    public void info(String format, Object... arguments) {
+        logger.info(format, arguments);
+    }
+
+    @Override
+    public void warn(String format, Object... arguments) {
+        logger.warn(format, arguments);
+    }
+
+    @Override
+    public void error(String format, Object... arguments) {
+        logger.error(format, arguments);
+    }
 }
