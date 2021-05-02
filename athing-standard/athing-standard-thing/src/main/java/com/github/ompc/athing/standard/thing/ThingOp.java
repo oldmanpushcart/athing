@@ -2,8 +2,6 @@ package com.github.ompc.athing.standard.thing;
 
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingEvent;
-import com.github.ompc.athing.standard.thing.boot.Modular;
-import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
 
 /**
  * 设备操作

@@ -27,7 +27,7 @@ public interface ThingComBoot {
      * @return 设备组件
      * @throws Exception 启动失败
      */
-    ThingCom bootUp(String productId, String thingId, String arguments) throws Exception;
+    ThingCom bootUp(String productId, String thingId, BootArguments arguments) throws Exception;
 
     /**
      * 设备组件厂商信息

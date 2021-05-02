@@ -3,14 +3,12 @@ package com.github.ompc.athing.aliyun.qatest.puppet;
 import com.github.ompc.athing.aliyun.platform.ThingMessageConsumerBuilder;
 import com.github.ompc.athing.aliyun.platform.ThingPlatformAccess;
 import com.github.ompc.athing.aliyun.platform.ThingPlatformBuilder;
-import com.github.ompc.athing.aliyun.qatest.QaThingConfigListener;
 import com.github.ompc.athing.aliyun.qatest.message.QaThingMessageGroupListener;
 import com.github.ompc.athing.aliyun.qatest.message.QaThingPostMessageListener;
 import com.github.ompc.athing.aliyun.qatest.message.QaThingReplyMessageListener;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.EchoThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.QaThingComImpl;
-import com.github.ompc.athing.aliyun.qatest.puppet.component.impl.ResourceThingComImpl;
 import com.github.ompc.athing.aliyun.thing.ThingBoot;
 import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
 import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccessImpl;
@@ -22,7 +20,6 @@ import com.github.ompc.athing.standard.platform.message.ThingMessageListener;
 import com.github.ompc.athing.standard.platform.message.ThingPostMessage;
 import com.github.ompc.athing.standard.platform.message.ThingReplyMessage;
 import com.github.ompc.athing.standard.thing.Thing;
-import com.github.ompc.athing.standard.thing.config.ThingConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.slf4j.Logger;
@@ -33,7 +30,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Properties;
-import java.util.concurrent.Executors;
 
 import static com.github.ompc.athing.aliyun.framework.Constants.DEFAULT_REGION_ID;
 
@@ -65,7 +61,6 @@ public class PuppetSupport {
             properties.getProperty("athing-platform.jms.connection-url");
     protected static final QaThingReplyMessageListener qaThingReplyMessageListener = new QaThingReplyMessageListener();
     protected static final QaThingPostMessageListener qaThingPostMessageListener = new QaThingPostMessageListener();
-    protected static final QaThingConfigListener qaThingConfigListener = new QaThingConfigListener();
     private static final Logger logger = LoggerFactory.getLogger(PuppetSupport.class);
     // 基础变量
     protected static Thing tPuppet;
@@ -134,7 +129,6 @@ public class PuppetSupport {
         final Thing thing = new ThingBoot(new URI(THING_SERVER_URL), THING_ACCESS)
                 .load(new File("./src/test/resources/lib/athing-component-dmgr-core-1.0.0-SNAPSHOT-jar-with-dependencies-for-qatest.jar"))
                 .load(new QaThingComImpl(),
-                        new ResourceThingComImpl(),
                         new ThingCom() {
                         }
                 )
@@ -167,10 +161,6 @@ public class PuppetSupport {
 
     public <T extends ThingPostMessage> T waitingForPostMessageByReqId(String reqId) throws InterruptedException {
         return qaThingPostMessageListener.waitingForPostMessageByReqId(reqId);
-    }
-
-    public ThingConfig waitingForReceiveThingConfig() throws InterruptedException {
-        return qaThingConfigListener.waitingForReceiveThingConfig();
     }
 
 }

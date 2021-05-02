@@ -3,7 +3,6 @@ package com.github.ompc.athing.aliyun.qatest.puppet;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.EchoThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
-import com.github.ompc.athing.aliyun.qatest.puppet.component.ResourceThingCom;
 import com.github.ompc.athing.component.dmgr.api.DmgrThingCom;
 import com.github.ompc.athing.component.dmgr.api.domain.info.CpuInfo;
 import com.github.ompc.athing.standard.component.Identifier;
@@ -20,16 +19,12 @@ import com.github.ompc.athing.standard.platform.util.TpEmptyReturn;
 import com.github.ompc.athing.standard.platform.util.TpReturnHelper;
 import com.github.ompc.athing.standard.thing.ThingException;
 import com.github.ompc.athing.standard.thing.ThingReplyFuture;
-import com.github.ompc.athing.standard.thing.ThingTokenFuture;
-import com.github.ompc.athing.standard.thing.config.ThingConfig;
-import com.github.ompc.athing.standard.thing.config.ThingConfigApply;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 
 public class PuppetTestCase extends PuppetSupport {
 

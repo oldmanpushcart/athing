@@ -130,22 +130,29 @@ public class ThingExecutorImpl implements ThingExecutor {
     }
 
     @Override
+    public <V> ThingPromise<V> promise() {
+        return promise(null);
+    }
+
+    @Override
     public <V> ThingPromise<V> promise(Fulfill<V> fulfill) {
         return promise(new ThingPromiseImpl<>(thing, this), fulfill);
     }
 
     @Override
     public <V, T extends ThingPromise<V>> T promise(T promise, Fulfill<V> fulfill) {
-        execute(() -> {
-            try {
-                fulfill.fulfilling(promise);
-            } catch (InterruptedException cause) {
-                promise.tryCancel();
-                Thread.currentThread().interrupt();
-            } catch (Throwable cause) {
-                promise.tryException(cause);
-            }
-        });
+        if (null != fulfill) {
+            execute(() -> {
+                try {
+                    fulfill.fulfilling(promise);
+                } catch (InterruptedException cause) {
+                    promise.tryCancel();
+                    Thread.currentThread().interrupt();
+                } catch (Throwable cause) {
+                    promise.tryException(cause);
+                }
+            });
+        }
         return promise;
     }
 

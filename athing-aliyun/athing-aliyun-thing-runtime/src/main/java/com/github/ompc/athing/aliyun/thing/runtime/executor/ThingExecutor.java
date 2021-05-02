@@ -41,6 +41,14 @@ public interface ThingExecutor extends Executor {
     /**
      * 承诺
      *
+     * @param <V> 类型
+     * @return 设备承诺
+     */
+    <V> ThingPromise<V> promise();
+
+    /**
+     * 承诺
+     *
      * @param fulfill 承诺履约
      * @param <V>     类型
      * @return 设备承诺
