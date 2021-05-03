@@ -8,8 +8,6 @@ import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntimes;
 import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutorImpl;
-import com.github.ompc.athing.aliyun.thing.runtime.logger.ThingLogger;
-import com.github.ompc.athing.aliyun.thing.runtime.logger.ThingLoggerImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessengerImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
@@ -86,16 +84,6 @@ public class ThingImpl implements Thing {
             @Override
             public ThingExecutor getThingExecutor() {
                 return executor;
-            }
-
-            @Override
-            public ThingLogger getThingLogger(Class<?> clazz) {
-                return new ThingLoggerImpl(LoggerFactory.getLogger(clazz));
-            }
-
-            @Override
-            public ThingLogger getThingLogger(String name) {
-                return new ThingLoggerImpl(LoggerFactory.getLogger(name));
             }
 
         });
