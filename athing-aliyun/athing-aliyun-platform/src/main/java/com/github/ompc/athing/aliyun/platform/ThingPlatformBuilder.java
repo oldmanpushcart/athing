@@ -10,7 +10,6 @@ import com.github.ompc.athing.aliyun.platform.product.ThProductMeta;
 import com.github.ompc.athing.aliyun.platform.product.ThProductStub;
 import com.github.ompc.athing.standard.platform.ThingPlatform;
 import com.github.ompc.athing.standard.platform.ThingPlatformException;
-import com.github.ompc.athing.standard.platform.message.ThingMessageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

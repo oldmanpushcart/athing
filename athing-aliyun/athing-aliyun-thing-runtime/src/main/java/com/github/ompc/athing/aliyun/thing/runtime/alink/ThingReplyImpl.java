@@ -12,22 +12,22 @@ public class ThingReplyImpl<T> implements ThingReply<T> {
     /**
      * 成功
      */
-    public static int ALINK_REPLY_OK = 200;
+    public final static int ALINK_REPLY_OK = 200;
 
     /**
      * 内部错误，解析请求时发生错误
      */
-    public static int ALINK_REPLY_REQUEST_ERROR = 400;
+    public final static int ALINK_REPLY_REQUEST_ERROR = 400;
 
     /**
      * 内部错误，处理请求时发生错误
      */
-    public static int ALINK_REPLY_PROCESS_ERROR = 500;
+    public final static int ALINK_REPLY_PROCESS_ERROR = 500;
 
     /**
      * 设备服务尚未定义
      */
-    public static int ALINK_REPLY_SERVICE_NOT_PROVIDED = 5161;
+    public final static int ALINK_REPLY_SERVICE_NOT_PROVIDED = 5161;
 
     private final String id;
     private final int code;

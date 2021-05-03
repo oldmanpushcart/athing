@@ -47,11 +47,10 @@ public class ThingOpImpl implements ThingOp {
 
     @Override
     public ThingFuture<ThingConnection> connect() {
-        return executor.promise(promise -> {
-            client.connect()
-                    .onFailure(promise::acceptFail)
-                    .onSuccess(connF -> promise.trySuccess(connF.getSuccess()));
-        });
+        return executor.promise(promise ->
+                client.connect()
+                        .onFailure(promise::acceptFail)
+                        .onSuccess(connF -> promise.trySuccess(connF.getSuccess())));
     }
 
 }

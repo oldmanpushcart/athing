@@ -109,7 +109,7 @@ public class ThingMessage {
         /**
          * 设备生命周期
          */
-        THING_LIFE_CYCLE;
+        THING_LIFE_CYCLE
 
     }
 

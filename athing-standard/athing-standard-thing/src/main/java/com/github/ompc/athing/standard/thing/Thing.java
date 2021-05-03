@@ -2,7 +2,6 @@ package com.github.ompc.athing.standard.thing;
 
 import com.github.ompc.athing.standard.component.ThingCom;
 
-import java.net.URI;
 import java.util.Set;
 
 /**

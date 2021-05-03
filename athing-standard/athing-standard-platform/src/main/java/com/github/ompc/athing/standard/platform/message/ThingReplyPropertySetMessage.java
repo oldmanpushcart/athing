@@ -1,8 +1,5 @@
 package com.github.ompc.athing.standard.platform.message;
 
-import java.util.Collections;
-import java.util.Set;
-
 import static com.github.ompc.athing.standard.platform.message.ThingMessage.Type.THING_REPLY_PROPERTIES_SET;
 
 /**

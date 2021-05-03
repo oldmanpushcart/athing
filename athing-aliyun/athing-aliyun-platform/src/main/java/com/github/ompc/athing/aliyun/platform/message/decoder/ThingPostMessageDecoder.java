@@ -5,7 +5,6 @@ import com.github.ompc.athing.aliyun.framework.component.meta.ThPropertyMeta;
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.platform.message.ThingMessageDecoder;
 import com.github.ompc.athing.aliyun.platform.product.ThProductMeta;
-import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.component.ThingEvent;
 import com.github.ompc.athing.standard.platform.domain.ThingPropertySnapshot;
 import com.github.ompc.athing.standard.platform.message.ThingMessage;

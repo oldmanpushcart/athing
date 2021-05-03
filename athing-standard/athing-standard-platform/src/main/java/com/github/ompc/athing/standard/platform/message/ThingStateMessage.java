@@ -71,7 +71,7 @@ public class ThingStateMessage extends ThingMessage {
         /**
          * 设备离线
          */
-        OFFLINE;
+        OFFLINE
 
     }
 }
