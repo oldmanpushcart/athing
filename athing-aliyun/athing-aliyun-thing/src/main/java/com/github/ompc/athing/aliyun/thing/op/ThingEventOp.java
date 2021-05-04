@@ -2,7 +2,8 @@ package com.github.ompc.athing.aliyun.thing.op;
 
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
-import com.github.ompc.athing.aliyun.thing.runtime.alink.ThingReplyImpl;
+import com.github.ompc.athing.aliyun.thing.runtime.messenger.JsonSerializerImpl;
+import com.github.ompc.athing.aliyun.thing.runtime.messenger.alink.ThingReplyImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingPromise;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
@@ -79,7 +80,7 @@ public class ThingEventOp {
     public ThingReplyFuture<Void> post(ThingEvent<?> event) {
         final String identity = event.getIdentifier().getIdentity();
         final String topic = format("/sys/%s/%s/thing/event/%s/post", thing.getProductId(), thing.getThingId(), identity);
-        return messenger.call(topic, token -> new MapObject()
+        return messenger.call(JsonSerializerImpl.serializer, topic, token -> new MapObject()
                 .putProperty("id", token)
                 .putProperty("version", "1.0")
                 .putProperty("method", format("thing.event.%s.post", identity))

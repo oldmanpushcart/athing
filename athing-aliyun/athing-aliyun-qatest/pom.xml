@@ -43,16 +43,37 @@
             <groupId>com.github.ompc.athing.aliyun</groupId>
             <artifactId>athing-aliyun-thing</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.ompc.athing.aliyun</groupId>
             <artifactId>athing-aliyun-platform</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.ompc.athing.component.dmgr</groupId>
             <artifactId>athing-component-dmgr-api</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ompc.athing.aliyun.component.config</groupId>
+            <artifactId>config-api</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ompc.athing.aliyun.component.modular</groupId>
+            <artifactId>modular-api</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ompc.athing.aliyun.component.tunnel</groupId>
+            <artifactId>tunnel-api</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -5,9 +5,10 @@ import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;
 import com.github.ompc.athing.aliyun.thing.container.ThComStub;
 import com.github.ompc.athing.aliyun.thing.container.ThingComContainer;
-import com.github.ompc.athing.aliyun.thing.runtime.alink.ThingReplyImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingPromise;
+import com.github.ompc.athing.aliyun.thing.runtime.messenger.JsonSerializerImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
+import com.github.ompc.athing.aliyun.thing.runtime.messenger.alink.ThingReplyImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttClient;
 import com.github.ompc.athing.standard.component.Identifier;
 import com.github.ompc.athing.standard.thing.Thing;
@@ -78,7 +79,7 @@ public class ThingPropertyOp {
                     final JsonObject requestJsonObject = parser.parse(message.getStringData(UTF_8)).getAsJsonObject();
                     final String token = requestJsonObject.get("id").getAsString();
                     final Set<String> successIds = setProperties(token, requestJsonObject.getAsJsonObject("params"));
-                    messenger.post(topic + "_reply", ThingReplyImpl.success(token))
+                    messenger.post(JsonSerializerImpl.serializer, topic + "_reply", ThingReplyImpl.success(token))
                             .onSuccess(f -> logger.info("{} property set success, token={};identities={};", this, token, successIds));
                 }
         );
@@ -208,6 +209,7 @@ public class ThingPropertyOp {
      */
     public ThingReplyFuture<Void> post(Identifier[] identifiers) {
         return messenger.call(
+                JsonSerializerImpl.serializer,
                 format("/sys/%s/%s/thing/event/property/post", thing.getProductId(), thing.getThingId()),
                 token -> new MapObject()
                         .putProperty("id", token)

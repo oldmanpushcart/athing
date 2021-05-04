@@ -1,6 +1,7 @@
-package com.github.ompc.athing.aliyun.qatest.puppet;
+package com.github.ompc.athing.aliyun.qatest.puppet.test;
 
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
+import com.github.ompc.athing.aliyun.qatest.puppet.PuppetSupport;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.EchoThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
 import com.github.ompc.athing.component.dmgr.api.DmgrThingCom;
@@ -107,7 +108,7 @@ public class PuppetTestCase extends PuppetSupport {
                 tpPuppet.getThingTemplate(PRODUCT_ID, THING_ID)
                         .getThingComponent(EchoThingCom.class)
                         .echoByAsync(new EchoThingCom.Echo("HELLO!")));
-        final ThingReplyServiceReturnMessage message = waitingForReplyMessageByReqId(tpReturn.getReqId());
+        final ThingReplyServiceReturnMessage message = waitingForReplyMessageByToken(tpReturn.getReqId());
         final EchoThingCom.Echo echo = message.getData();
         Assert.assertEquals("HELLO!", echo.getWords());
     }
@@ -133,7 +134,7 @@ public class PuppetTestCase extends PuppetSupport {
         );
 
         // check
-        final ThingReplyPropertySetMessage message = waitingForReplyMessageByReqId(tpReturn.getReqId());
+        final ThingReplyPropertySetMessage message = waitingForReplyMessageByToken(tpReturn.getReqId());
         Assert.assertEquals(200, message.getCode());
         Assert.assertEquals(100, lightCom.getBright());
         Assert.assertEquals(LightThingCom.State.ON, lightCom.getState());

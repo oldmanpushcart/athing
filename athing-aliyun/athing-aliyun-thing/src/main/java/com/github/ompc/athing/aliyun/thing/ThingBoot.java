@@ -8,6 +8,7 @@ import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
+import com.github.ompc.athing.standard.thing.boot.BootArguments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,7 @@ public class ThingBoot {
     }
 
     public ThingBoot load(File file) {
-        return load(file, (productId, thingId, boot) -> boot.bootUp(productId, thingId, null));
+        return load(file, (productId, thingId, boot) -> boot.bootUp(productId, thingId, new BootArguments()));
     }
 
     public ThingBoot option(ThingBootOption option) {

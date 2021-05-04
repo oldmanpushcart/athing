@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 设备执行器实现
@@ -156,20 +157,31 @@ public class ThingExecutorImpl implements ThingExecutor {
         return promise;
     }
 
-    private Executor choice() {
-        return Strategy.INLINE == strategyRef.get()
+    private Executor choice(Strategy strategy) {
+        return null == strategy
                 ? inline
                 : workers;
     }
 
     @Override
     public void execute(Runnable command) {
-        choice().execute(() -> {
+        final Strategy strategy = strategyRef.get();
+        choice(strategy).execute(() -> {
+
+            final Strategy current;
+            if (null == strategy) {
+                strategyRef.set(current = new Strategy());
+            } else {
+                current = strategy;
+            }
+
             try {
-                strategyRef.set(Strategy.INLINE);
+                current.inlineCnt.incrementAndGet();
                 command.run();
             } finally {
-                strategyRef.remove();
+                if (current.inlineCnt.decrementAndGet() == 0) {
+                    strategyRef.remove();
+                }
             }
         });
     }
@@ -187,12 +199,9 @@ public class ThingExecutorImpl implements ThingExecutor {
     /**
      * 执行策略
      */
-    private enum Strategy {
+    private class Strategy {
 
-        /**
-         * 内联
-         */
-        INLINE
+        private final AtomicInteger inlineCnt = new AtomicInteger(0);
 
     }
 

@@ -1,4 +1,4 @@
-package com.github.ompc.athing.aliyun.qatest.puppet;
+package com.github.ompc.athing.aliyun.qatest.puppet.test;
 
 import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.framework.util.MapObject;

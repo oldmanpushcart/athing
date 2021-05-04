@@ -12,7 +12,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QaThingReplyMessageListener implements ThingMessageListener {
 
-    private final ConcurrentHashMap<String, Waiter> reqWaiterMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Waiter> tokenWaiterMap = new ConcurrentHashMap<>();
 
     @Override
 
@@ -22,16 +22,16 @@ public class QaThingReplyMessageListener implements ThingMessageListener {
         }
         final ThingReplyMessage replyMsg = (ThingReplyMessage) message;
         final Waiter existed, current = new Waiter(replyMsg);
-        if ((existed = reqWaiterMap.putIfAbsent(replyMsg.getReqId(), current)) != null) {
+        if ((existed = tokenWaiterMap.putIfAbsent(replyMsg.getToken(), current)) != null) {
             existed.message = replyMsg;
             existed.latch.countDown();
         }
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends ThingReplyMessage> T waitingForReplyMessageByReqId(String reqId) throws InterruptedException {
+    public <T extends ThingReplyMessage> T waitingForReplyMessageByToken(String token) throws InterruptedException {
         final Waiter existed, current = new Waiter();
-        final Waiter waiter = (existed = reqWaiterMap.putIfAbsent(reqId, current)) != null
+        final Waiter waiter = (existed = tokenWaiterMap.putIfAbsent(token, current)) != null
                 ? existed
                 : current;
         waiter.latch.await();

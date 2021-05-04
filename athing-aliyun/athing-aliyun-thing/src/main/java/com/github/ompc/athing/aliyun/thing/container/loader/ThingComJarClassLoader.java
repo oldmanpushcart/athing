@@ -128,7 +128,7 @@ public class ThingComJarClassLoader extends URLClassLoader {
             logger.warn("{} close occur error!", this, cause);
         } finally {
             if (!FileUtils.deleteQuietly(tempComJarFile)) {
-                logger.debug("failure to clean temp file: {}", tempComJarFile);
+                logger.debug("failure to delete temp file: {}", tempComJarFile);
             }
         }
 

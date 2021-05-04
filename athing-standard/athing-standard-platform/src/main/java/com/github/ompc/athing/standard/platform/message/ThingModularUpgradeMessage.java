@@ -90,12 +90,12 @@ public class ThingModularUpgradeMessage extends ThingMessage {
         /**
          * 升级成功
          */
-        SUCCESS,
+        SUCCEEDED,
 
         /**
          * 升级失败
          */
-        FAILURE,
+        FAILED,
 
         /**
          * 升级取消

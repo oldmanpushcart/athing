@@ -97,7 +97,7 @@ public class ThingPromiseImpl<V> extends ThingFutureImpl<V> implements ThingProm
                 try {
                     notify.onDone(this);
                 } catch (Throwable cause) {
-                    logger.warn("{} notify listener error!", this);
+                    logger.warn("{} notify listener error!", this, cause);
                 }
             }));
 
@@ -171,19 +171,19 @@ public class ThingPromiseImpl<V> extends ThingFutureImpl<V> implements ThingProm
             // success
             if (future.isSuccess()) {
                 if (trySuccess(future.getSuccess())) {
-                    logger.debug("{} accept {} success", this, target);
+                    logger.trace("{} accept {} success", this, target);
                 }
             }
             // exception
             else if (future.isException()) {
                 if (tryException(future.getException())) {
-                    logger.debug("{} accept {} exception", this, target);
+                    logger.trace("{} accept {} exception", this, target);
                 }
             }
             // cancel
             else if (future.isCancelled()) {
                 if (tryCancel()) {
-                    logger.debug("{} accept {} cancelled", this, target);
+                    logger.trace("{} accept {} cancelled", this, target);
                 }
             }
         });
@@ -196,13 +196,13 @@ public class ThingPromiseImpl<V> extends ThingFutureImpl<V> implements ThingProm
             // exception
             if (future.isException()) {
                 if (tryException(future.getException())) {
-                    logger.debug("{} accept {} exception", this, target);
+                    logger.trace("{} accept {} exception", this, target);
                 }
             }
             // cancel
             else if (future.isCancelled()) {
                 if (tryCancel()) {
-                    logger.debug("{} accept {} cancelled", this, target);
+                    logger.trace("{} accept {} cancelled", this, target);
                 }
             }
         });

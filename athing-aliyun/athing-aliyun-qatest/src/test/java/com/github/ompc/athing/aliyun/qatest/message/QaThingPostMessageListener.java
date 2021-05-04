@@ -9,7 +9,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class QaThingPostMessageListener implements ThingMessageListener {
 
-    private final ConcurrentHashMap<String, Waiter> reqWaiterMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Waiter> tokenWaiterMap = new ConcurrentHashMap<>();
 
     @Override
     public void onMessage(ThingMessage message) {
@@ -19,7 +19,7 @@ public class QaThingPostMessageListener implements ThingMessageListener {
         }
         final ThingPostMessage postMsg = (ThingPostMessage) message;
         final Waiter existed, current = new Waiter(postMsg);
-        if ((existed = reqWaiterMap.putIfAbsent(postMsg.getReqId(), current)) != null) {
+        if ((existed = tokenWaiterMap.putIfAbsent(postMsg.getToken(), current)) != null) {
             existed.message = postMsg;
             existed.latch.countDown();
         }
@@ -27,9 +27,9 @@ public class QaThingPostMessageListener implements ThingMessageListener {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends ThingPostMessage> T waitingForPostMessageByReqId(String reqId) throws InterruptedException {
+    public <T extends ThingPostMessage> T waitingForPostMessageByToken(String token) throws InterruptedException {
         final Waiter existed, current = new Waiter();
-        final Waiter waiter = (existed = reqWaiterMap.putIfAbsent(reqId, current)) != null
+        final Waiter waiter = (existed = tokenWaiterMap.putIfAbsent(token, current)) != null
                 ? existed
                 : current;
         waiter.latch.await();

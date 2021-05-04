@@ -1,4 +1,4 @@
-package com.github.ompc.athing.aliyun.thing.runtime.alink;
+package com.github.ompc.athing.aliyun.thing.runtime.messenger.alink;
 
 import com.github.ompc.athing.standard.thing.ThingReply;
 

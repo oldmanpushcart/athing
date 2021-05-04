@@ -24,17 +24,17 @@ public class ThingModularMessageDecoder implements ThingMessageDecoder {
     @Override
     public ThingMessage[] decode(String jmsTopic, String jmsMessageId, String jmsMessage) throws Exception {
 
-        if (!jmsMessage.matches("^/[^/]+/[^/]+/ota/")) {
+        if (!jmsTopic.matches("^/[^/]+/[^/]+/ota/.+")) {
             return null;
         }
 
         // 解码设备模块升级消息
-        if (jmsMessage.endsWith("/ota/upgrade")) {
+        if (jmsTopic.endsWith("/ota/upgrade")) {
             return new ThingMessage[]{decodeUpgradeMessage(jmsMessage)};
         }
 
         // 解码设备模块报告消息
-        else if (jmsMessage.endsWith("/ota/version/post")) {
+        else if (jmsTopic.endsWith("/ota/version/post")) {
             return new ThingMessage[]{decodeReportMessage(jmsMessage)};
         }
 

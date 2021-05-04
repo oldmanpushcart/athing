@@ -21,16 +21,16 @@
             <artifactId>athing-aliyun-thing-runtime</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.ompc.athing.standard</groupId>
-            <artifactId>athing-standard-component</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.ompc.athing.standard</groupId>
-            <artifactId>athing-standard-thing</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.github.ompc.athing.standard</groupId>-->
+<!--            <artifactId>athing-standard-component</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.github.ompc.athing.standard</groupId>-->
+<!--            <artifactId>athing-standard-thing</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

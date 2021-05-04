@@ -1,6 +1,5 @@
 package com.github.ompc.athing.aliyun.thing.runtime.messenger;
 
-import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.thing.ThingBootOption;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingPromise;
@@ -11,7 +10,6 @@ import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttMessage;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttMessageImpl;
 import com.github.ompc.athing.aliyun.thing.util.StringUtils;
 import com.github.ompc.athing.standard.thing.*;
-import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +31,6 @@ public class ThingMessengerImpl implements ThingMessenger {
     private final ThingExecutor executor;
     private final ThingMqtt mqtt;
     private final Map<String, ThingPromise<?>> promises = new ConcurrentHashMap<>();
-    private final Gson gson = GsonFactory.getGson();
     private final String _string;
 
     public ThingMessengerImpl(ThingBootOption option, Thing thing, ThingExecutor executor, ThingMqtt mqtt) {
@@ -50,12 +47,12 @@ public class ThingMessengerImpl implements ThingMessenger {
     }
 
     @Override
-    public ThingTokenFuture<Void> post(String topic, TokenData data) {
+    public ThingTokenFuture<Void> post(JsonSerializer serializer, String topic, TokenData data) {
         final String token = StringUtils.generateToken();
         return executor.promise(new ThingTokenPromiseImpl<>(token, thing, executor), promise -> {
 
             // 构建MQTT消息
-            final String payload = gson.toJson(data.make(token));
+            final String payload = serializer.toJson(data.make(token));
             final ThingMqttMessage message = new ThingMqttMessageImpl(payload.getBytes(UTF_8));
 
             // 发送MQTT消息
@@ -69,11 +66,11 @@ public class ThingMessengerImpl implements ThingMessenger {
     }
 
     @Override
-    public ThingTokenFuture<Void> post(String topic, ThingReply<?> reply) {
+    public ThingTokenFuture<Void> post(JsonSerializer serializer, String topic, ThingReply<?> reply) {
         return executor.promise(new ThingTokenPromiseImpl<>(reply.getToken(), thing, executor), promise -> {
 
             // 构建MQTT消息
-            final String payload = gson.toJson(reply);
+            final String payload = serializer.toJson(reply);
             final ThingMqttMessage message = new ThingMqttMessageImpl(payload.getBytes(UTF_8));
 
             // 发送MQTT消息
@@ -87,7 +84,7 @@ public class ThingMessengerImpl implements ThingMessenger {
     }
 
     @Override
-    public <T> ThingReplyFuture<T> call(String topic, TokenData data) {
+    public <T> ThingReplyFuture<T> call(JsonSerializer serializer, String topic, TokenData data) {
 
         // TOKEN
         final String token = StringUtils.generateToken();
@@ -98,7 +95,7 @@ public class ThingMessengerImpl implements ThingMessenger {
             final Object content = data.make(token);
 
             // 构建MQTT消息
-            final String payload = gson.toJson(content);
+            final String payload = serializer.toJson(content);
             final ThingMqttMessage message = new ThingMqttMessageImpl(payload.getBytes(UTF_8));
 
             // 开启超时任务
@@ -126,8 +123,8 @@ public class ThingMessengerImpl implements ThingMessenger {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ThingPromise<T> reply(String token) {
-        return (ThingPromise<T>) promises.remove(token);
+    public <T> ThingPromise<ThingReply<T>> reply(String token) {
+        return (ThingPromise<ThingReply<T>>) promises.remove(token);
     }
 
 }

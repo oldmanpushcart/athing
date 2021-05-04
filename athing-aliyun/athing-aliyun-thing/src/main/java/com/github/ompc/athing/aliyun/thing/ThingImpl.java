@@ -1,5 +1,6 @@
 package com.github.ompc.athing.aliyun.thing;
 
+import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.thing.container.ThingComContainer;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComLoader;
 import com.github.ompc.athing.aliyun.thing.op.ThingOpImpl;
@@ -8,6 +9,7 @@ import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntimes;
 import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutorImpl;
+import com.github.ompc.athing.aliyun.thing.runtime.messenger.JsonSerializer;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessengerImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
