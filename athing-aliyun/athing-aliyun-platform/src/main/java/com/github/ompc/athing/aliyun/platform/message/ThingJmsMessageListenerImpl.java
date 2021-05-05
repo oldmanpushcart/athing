@@ -85,7 +85,8 @@ public class ThingJmsMessageListenerImpl implements MessageListener {
 
         try {
             _onMessage(jmsMessage);
-        } catch (DecodeException cause) {
+            jmsMessage.acknowledge();
+        } catch (Exception cause) {
             logger.warn("{} handle jms-message occur error!", this, cause);
             throw new RuntimeException(cause);
         }

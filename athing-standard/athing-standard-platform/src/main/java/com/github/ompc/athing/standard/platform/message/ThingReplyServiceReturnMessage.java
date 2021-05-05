@@ -18,7 +18,7 @@ public class ThingReplyServiceReturnMessage extends ThingReplyMessage {
      * @param productId  产品ID
      * @param thingId    设备ID
      * @param timestamp  消息时间戳
-     * @param reqId      请求ID
+     * @param token      请求令牌
      * @param code       应答码
      * @param desc       应答描述
      * @param identifier 服务标识
@@ -26,10 +26,10 @@ public class ThingReplyServiceReturnMessage extends ThingReplyMessage {
      */
     public ThingReplyServiceReturnMessage(
             String productId, String thingId, long timestamp,
-            String reqId, int code, String desc,
+            String token, int code, String desc,
             Identifier identifier, Object data
     ) {
-        super(THING_REPLY_SERVICE_RETURN, productId, thingId, timestamp, reqId, code, desc);
+        super(THING_REPLY_SERVICE_RETURN, productId, thingId, timestamp, token, code, desc);
         this.identifier = identifier;
         this.data = data;
     }

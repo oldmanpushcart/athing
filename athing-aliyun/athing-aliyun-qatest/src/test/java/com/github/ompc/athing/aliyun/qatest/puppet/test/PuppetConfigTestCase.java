@@ -6,9 +6,13 @@ import com.github.ompc.athing.aliyun.component.config.api.Scope;
 import com.github.ompc.athing.aliyun.qatest.puppet.PuppetSupport;
 import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntimes;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingPromise;
+import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttMessage;
+import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttMessageHandler;
 import com.github.ompc.athing.standard.platform.message.ThingReplyConfigPushMessage;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static java.lang.String.format;
 
 public class PuppetConfigTestCase extends PuppetSupport {
 
@@ -54,21 +58,18 @@ public class PuppetConfigTestCase extends PuppetSupport {
                     config.getContent()
                             .onFailure(promise::acceptFail)
                             .onSuccess(future -> {
-
                                 committer.commit();
-
                                 try {
-                                    final ThingReplyConfigPushMessage message = waitingForReplyMessageByToken(token);
-                                    Assert.assertNotNull(message);
-                                    promise.trySuccess(future.get());
+                                    promise.trySuccess(token);
                                 } catch (Exception cause) {
                                     promise.tryException(cause);
                                 }
-
                             });
                 });
 
         Assert.assertNotNull(promise.get());
+        final ThingReplyConfigPushMessage message = waitingForReplyMessageByToken(promise.get());
+        Assert.assertNotNull(message);
         System.out.println("config=" + promise.get());
     }
 

@@ -57,7 +57,7 @@ public class PuppetTestCase extends PuppetSupport {
 
         Assert.assertTrue(future.isSuccess());
 
-        final ThingPostPropertyMessage message = waitingForPostMessageByReqId(future.getToken());
+        final ThingPostPropertyMessage message = waitingForPostMessageByToken(future.getToken());
         Assert.assertNotNull(message.getPropertySnapshot(cpuInfoId));
         Assert.assertNotNull(message.getPropertySnapshot(memoryInfoId));
         Assert.assertNotNull(message.getPropertySnapshot(networksInfoId));
@@ -89,7 +89,7 @@ public class PuppetTestCase extends PuppetSupport {
         future.await();
         Assert.assertTrue(future.isSuccess());
 
-        final ThingPostEventMessage message = waitingForPostMessageByReqId(future.getToken());
+        final ThingPostEventMessage message = waitingForPostMessageByToken(future.getToken());
         final EchoThingCom.Echo echo = message.getData();
         Assert.assertEquals("HELLO!", echo.getWords());
     }

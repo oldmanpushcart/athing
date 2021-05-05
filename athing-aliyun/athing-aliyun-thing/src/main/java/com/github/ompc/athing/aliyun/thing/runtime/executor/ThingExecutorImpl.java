@@ -13,7 +13,7 @@ import java.util.concurrent.*;
  */
 public class ThingExecutorImpl implements ThingExecutor {
 
-    private final static ThreadLocal<Strategy> strategyRef = new ThreadLocal<>();
+    private final static ThreadLocal<Runtime> runtimeRef = new ThreadLocal<>();
     private final static Executor inline = Runnable::run;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -156,39 +156,30 @@ public class ThingExecutorImpl implements ThingExecutor {
         return promise;
     }
 
+
     @Override
     public void execute(Runnable command) {
 
-        final Strategy current = strategyRef.get();
-        final Executor executor;
-        final Strategy strategy;
+        final Runtime runtime = runtimeRef.get();
 
-        // 运行策略：分支
-        if (null == current) {
-            executor = workers;
-            strategyRef.set(strategy = new Strategy());
+        // 内联
+        if (null != runtime) {
+            command.run();
         }
 
-        // 运行策略：内联
+        // 独立
         else {
-            executor = inline;
-            strategy = current;
-        }
+            workers.execute(() -> {
 
-        // 运行
-        executor.execute(() -> {
-            try {
-                strategy.inlineCnt++;
-                command.run();
-            } finally {
-
-                // 最后一层退出后，则需要清空策略
-                if (0 == strategy.inlineCnt--) {
-                    strategyRef.remove();
+                try {
+                    runtimeRef.set(new Runtime());
+                    command.run();
+                } finally {
+                    runtimeRef.remove();
                 }
 
-            }
-        });
+            });
+        }
 
     }
 
@@ -203,14 +194,9 @@ public class ThingExecutorImpl implements ThingExecutor {
     }
 
     /**
-     * 执行策略
+     * 执行环境
      */
-    private static class Strategy {
-
-        /**
-         * 内联执行计数器
-         */
-        private int inlineCnt = 0;
+    private static class Runtime {
 
     }
 

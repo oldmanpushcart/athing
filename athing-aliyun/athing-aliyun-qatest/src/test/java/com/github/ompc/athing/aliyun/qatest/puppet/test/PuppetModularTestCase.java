@@ -11,8 +11,6 @@ import com.github.ompc.athing.standard.platform.message.ThingModularUpgradeMessa
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
-
 public class PuppetModularTestCase extends PuppetSupport {
 
     /*
@@ -22,7 +20,7 @@ public class PuppetModularTestCase extends PuppetSupport {
     @Test
     public void debug$modular$push() throws Exception {
 
-        final ThingPromise<File> promise = ThingRuntimes.getThingRuntime(tPuppet).getThingExecutor().promise();
+        final ThingPromise<String> promise = ThingRuntimes.getThingRuntime(tPuppet).getThingExecutor().promise();
 
         // 先订阅升级的推送监听
         tPuppet.getThingCom(ModularThingCom.class, true)
@@ -36,12 +34,7 @@ public class PuppetModularTestCase extends PuppetSupport {
                                     committer.commit();
 
                                     try {
-                                        final ThingModularUpgradeMessage message = waitingForThingModularUpgradeMessageByModuleId(upgrade.getModuleId());
-                                        Assert.assertNotNull(message);
-                                        Assert.assertEquals("1.0.0", message.getSrcVersion());
-                                        Assert.assertEquals("1.0.1", message.getDstVersion());
-                                        Assert.assertEquals(ThingModularUpgradeMessage.Result.SUCCEEDED, message.getResult());
-                                        promise.trySuccess(future.get());
+                                        promise.trySuccess(upgrade.getModuleId());
                                     } catch (Exception cause) {
                                         promise.tryException(cause);
                                     }
@@ -56,6 +49,11 @@ public class PuppetModularTestCase extends PuppetSupport {
                 .sync();
 
         Assert.assertNotNull(promise.get());
+        final ThingModularUpgradeMessage message = waitingForThingModularUpgradeMessageByModuleId(promise.get());
+        Assert.assertNotNull(message);
+        Assert.assertEquals("1.0.0", message.getSrcVersion());
+        Assert.assertEquals("1.0.1", message.getDstVersion());
+        Assert.assertEquals(ThingModularUpgradeMessage.Result.SUCCEEDED, message.getResult());
 
     }
 

@@ -13,15 +13,15 @@ public class ThingReplyConfigPushMessage extends ThingReplyMessage {
      * @param productId 产品ID
      * @param thingId   设备ID
      * @param timestamp 消息时间戳
-     * @param reqId     请求ID
+     * @param token     请求令牌
      * @param code      应答码
      * @param desc      应答描述
      */
     public ThingReplyConfigPushMessage(
             String productId, String thingId, long timestamp,
-            String reqId, int code, String desc
+            String token, int code, String desc
     ) {
-        super(THING_REPLY_CONFIG_PUSH, productId, thingId, timestamp, reqId, code, desc);
+        super(THING_REPLY_CONFIG_PUSH, productId, thingId, timestamp, token, code, desc);
     }
 
 }

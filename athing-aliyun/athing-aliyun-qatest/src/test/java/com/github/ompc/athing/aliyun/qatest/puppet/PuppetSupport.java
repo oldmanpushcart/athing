@@ -170,12 +170,12 @@ public class PuppetSupport {
                 .build();
     }
 
-    public <T extends ThingReplyMessage> T waitingForReplyMessageByToken(String reqId) throws InterruptedException {
-        return qaThingReplyMessageListener.waitingForReplyMessageByToken(reqId);
+    public <T extends ThingReplyMessage> T waitingForReplyMessageByToken(String token) throws InterruptedException {
+        return qaThingReplyMessageListener.waitingForReplyMessageByToken(token);
     }
 
-    public <T extends ThingPostMessage> T waitingForPostMessageByReqId(String reqId) throws InterruptedException {
-        return qaThingPostMessageListener.waitingForPostMessageByToken(reqId);
+    public <T extends ThingPostMessage> T waitingForPostMessageByToken(String token) throws InterruptedException {
+        return qaThingPostMessageListener.waitingForPostMessageByToken(token);
     }
 
     public ThingModularUpgradeMessage waitingForThingModularUpgradeMessageByModuleId(String moduleId) throws InterruptedException {
