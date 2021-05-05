@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 设备执行器实现
@@ -157,33 +156,40 @@ public class ThingExecutorImpl implements ThingExecutor {
         return promise;
     }
 
-    private Executor choice(Strategy strategy) {
-        return null == strategy
-                ? inline
-                : workers;
-    }
-
     @Override
     public void execute(Runnable command) {
-        final Strategy strategy = strategyRef.get();
-        choice(strategy).execute(() -> {
 
-            final Strategy current;
-            if (null == strategy) {
-                strategyRef.set(current = new Strategy());
-            } else {
-                current = strategy;
-            }
+        final Strategy current = strategyRef.get();
+        final Executor executor;
+        final Strategy strategy;
 
+        // 运行策略：分支
+        if (null == current) {
+            executor = workers;
+            strategyRef.set(strategy = new Strategy());
+        }
+
+        // 运行策略：内联
+        else {
+            executor = inline;
+            strategy = current;
+        }
+
+        // 运行
+        executor.execute(() -> {
             try {
-                current.inlineCnt.incrementAndGet();
+                strategy.inlineCnt++;
                 command.run();
             } finally {
-                if (current.inlineCnt.decrementAndGet() == 0) {
+
+                // 最后一层退出后，则需要清空策略
+                if (0 == strategy.inlineCnt--) {
                     strategyRef.remove();
                 }
+
             }
         });
+
     }
 
     /**
@@ -199,9 +205,12 @@ public class ThingExecutorImpl implements ThingExecutor {
     /**
      * 执行策略
      */
-    private class Strategy {
+    private static class Strategy {
 
-        private final AtomicInteger inlineCnt = new AtomicInteger(0);
+        /**
+         * 内联执行计数器
+         */
+        private int inlineCnt = 0;
 
     }
 
