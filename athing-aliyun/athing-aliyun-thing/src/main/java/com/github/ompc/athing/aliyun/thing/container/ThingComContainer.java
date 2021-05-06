@@ -137,7 +137,16 @@ public class ThingComContainer {
         if (mark.tryMark(State.INITIALIZED)) {
             if (mark.component instanceof Initializing) {
                 try {
-                    ((Initializing) mark.component).initialized(thing);
+
+                    final ClassLoader oriClassLoader = Thread.currentThread().getContextClassLoader();
+
+                    try {
+                        Thread.currentThread().setContextClassLoader(mark.component.getClass().getClassLoader());
+                        ((Initializing) mark.component).initialized(thing);
+                    } finally {
+                        Thread.currentThread().setContextClassLoader(oriClassLoader);
+                    }
+
                 } catch (Throwable cause) {
 
                     // 如果初始化失败，则就地销毁
@@ -306,6 +315,28 @@ public class ThingComContainer {
     }
 
     /**
+     * 状态
+     */
+    private enum State {
+
+        /**
+         * 已创建
+         */
+        CREATED,
+
+        /**
+         * 已初始
+         */
+        INITIALIZED,
+
+        /**
+         * 已销毁
+         */
+        DESTROYED
+
+    }
+
+    /**
      * 设备组件标记
      */
     private static class ThingComMark {
@@ -362,28 +393,6 @@ public class ThingComContainer {
         boolean isDestroyed() {
             return stateRef.get() == State.DESTROYED;
         }
-
-    }
-
-    /**
-     * 状态
-     */
-    private enum State {
-
-        /**
-         * 已创建
-         */
-        CREATED,
-
-        /**
-         * 已初始
-         */
-        INITIALIZED,
-
-        /**
-         * 已销毁
-         */
-        DESTROYED
 
     }
 

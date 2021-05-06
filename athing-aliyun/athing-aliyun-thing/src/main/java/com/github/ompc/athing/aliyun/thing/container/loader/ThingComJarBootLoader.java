@@ -34,9 +34,17 @@ public class ThingComJarBootLoader extends ThingComBootLoader {
         final ThingComJarClassLoader loader = new ThingComJarClassLoader(comJarFile, getClass().getClassLoader());
         return new LinkedHashSet<ThingCom>() {{
             try {
-                for (final ThingComBoot boot : ServiceLoader.load(ThingComBoot.class, loader)) {
-                    add(getOnBoot().onBoot(productId, thingId, boot));
+
+                final ClassLoader oriClassLoader = Thread.currentThread().getContextClassLoader();
+                try {
+                    Thread.currentThread().setContextClassLoader(loader);
+                    for (final ThingComBoot boot : ServiceLoader.load(ThingComBoot.class, loader)) {
+                        add(getOnBoot().onBoot(productId, thingId, boot));
+                    }
+                } finally {
+                    Thread.currentThread().setContextClassLoader(oriClassLoader);
                 }
+
             } catch (Exception cause) {
                 logger.warn("thing:/{}/{} booting jar failure, {} will be closed!", productId, thingId, loader);
                 IOUtils.closeQuietly(loader);
