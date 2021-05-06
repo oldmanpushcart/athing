@@ -115,8 +115,6 @@ public class PuppetSupport {
             return;
         }
 
-        logger.warn("{} reconnect!", thing);
-
         thing.getThingOp().connect()
                 .onFailure(connF -> {
                     reconnect(thing);

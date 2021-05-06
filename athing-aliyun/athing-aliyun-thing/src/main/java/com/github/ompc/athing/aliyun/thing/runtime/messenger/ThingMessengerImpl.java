@@ -76,8 +76,8 @@ public class ThingMessengerImpl implements ThingMessenger {
             // 发送MQTT消息
             promise.self()
                     .acceptDone(mqtt.publish(topic, message))
-                    .onSuccess(future -> logger.debug("{} post message success, token={};topic={};message -> {}", this, reply.getToken(), topic, payload))
-                    .onFailure(future -> logger.debug("{} post message failure, token={};topic={};message -> {}", this, reply.getToken(), topic, payload, future.getException()))
+                    .onSuccess(future -> logger.debug("{} post reply success, token={};topic={};message -> {}", this, reply.getToken(), topic, payload))
+                    .onFailure(future -> logger.debug("{} post reply failure, token={};topic={};message -> {}", this, reply.getToken(), topic, payload, future.getException()))
             ;
 
         });
@@ -108,14 +108,15 @@ public class ThingMessengerImpl implements ThingMessenger {
             // 注册promise
             promises.put(token, promise);
 
-            // 承诺完成需要清理现场
+            // 完成清理
             promise.onDone(future -> {
                 timerF.cancel(true);
                 promises.remove(token);
             });
 
-            // 发送MQTT消息
             mqtt.publish(topic, message)
+                    .onSuccess(future -> logger.debug("{} post call success, token={};topic={};message -> {}", this, token, topic, payload))
+                    .onFailure(future -> logger.debug("{} post call failure, token={};topic={};message -> {}", this, token, topic, payload, future.getException()))
                     .onFailure(promise::acceptFail);
 
         });

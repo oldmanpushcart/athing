@@ -1,8 +1,8 @@
 package com.github.ompc.athing.aliyun.platform;
 
+import com.github.ompc.athing.aliyun.platform.message.ThingJmsMessageListenerImpl;
 import com.github.ompc.athing.aliyun.platform.message.ThingMessageDecoder;
 import com.github.ompc.athing.aliyun.platform.product.ThProductMeta;
-import com.github.ompc.athing.aliyun.platform.message.ThingJmsMessageListenerImpl;
 import com.github.ompc.athing.standard.platform.ThingPlatformException;
 import com.github.ompc.athing.standard.platform.message.ThingMessageListener;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ class ThingMessageConsumer implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(ThingMessageConsumer.class);
     private final Connection connection;
     private final String name;
-    private final String toString;
+    private final String _string;
 
     private ThingMessageConsumer(final String name,
                                  final Context context,
@@ -37,12 +37,20 @@ class ThingMessageConsumer implements Closeable {
                                  final Set<ThingMessageDecoder> decoders,
                                  final ThingMessageListener listener) throws JMSException, NamingException {
         this.name = name;
-        this.toString = String.format("TMC:%s", name);
+        this._string = String.format("TMC:%s", name);
         this.connection = connection;
         final Session session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
         final Destination queue = (Destination) context.lookup("QUEUE");
         final MessageConsumer consumer = session.createConsumer(queue);
-        consumer.setMessageListener(new ThingJmsMessageListenerImpl(thProductMetaMap, decoders, listener));
+        consumer.setMessageListener(new ThingJmsMessageListenerImpl(thProductMetaMap, decoders, listener) {
+
+            private final String _string = String.format("%s/listener", ThingMessageConsumer.this._string);
+
+            @Override
+            public String toString() {
+                return _string;
+            }
+        });
         connection.start();
     }
 
@@ -121,7 +129,7 @@ class ThingMessageConsumer implements Closeable {
 
     @Override
     public String toString() {
-        return toString;
+        return _string;
     }
 
     /**

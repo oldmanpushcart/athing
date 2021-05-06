@@ -20,7 +20,7 @@ public class ThingComJarClassLoader extends URLClassLoader {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final File tempComJarFile;
-    private final String toString;
+    private final String _string;
 
     /**
      * 组件库文件ClassLoader
@@ -39,10 +39,9 @@ public class ThingComJarClassLoader extends URLClassLoader {
 
     private ThingComJarClassLoader(String md5, File tempComJarFile, ClassLoader parent) throws MalformedURLException {
         super(new URL[]{new URL("file:" + tempComJarFile.getPath())}, parent);
-        logger.debug("create temp file: {}", tempComJarFile);
         this.tempComJarFile = tempComJarFile;
-        this.toString = String.format("ThingComJarClassLoader[%s]", md5);
-        logger.info("{} is opened!", this);
+        this._string = String.format("ThingComJarClassLoader[%s]$%s", md5, tempComJarFile.getAbsolutePath());
+        logger.debug("{} is opened!", this);
     }
 
     private static File copyToTempFile(final File moduleJarFile, final String md5) throws IOException {
@@ -57,7 +56,7 @@ public class ThingComJarClassLoader extends URLClassLoader {
 
     @Override
     public String toString() {
-        return toString;
+        return _string;
     }
 
     @Override
@@ -123,13 +122,11 @@ public class ThingComJarClassLoader extends URLClassLoader {
         onJarUnLoadCompleted();
         try {
             super.close();
-            logger.info("{} is closed.", this);
+            logger.debug("{} is closed.", this);
         } catch (IOException cause) {
             logger.warn("{} close occur error!", this, cause);
         } finally {
-            if (!FileUtils.deleteQuietly(tempComJarFile)) {
-                logger.debug("failure to delete temp file: {}", tempComJarFile);
-            }
+            FileUtils.deleteQuietly(tempComJarFile);
         }
 
     }

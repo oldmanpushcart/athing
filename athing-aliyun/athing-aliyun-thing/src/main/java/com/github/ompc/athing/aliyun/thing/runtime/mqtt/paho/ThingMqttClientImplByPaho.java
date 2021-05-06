@@ -32,22 +32,19 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
     private final ThingExecutor executor;
     private final IMqttAsyncClient pahoClient;
     private final String _string;
-    private final ThingMqttClientImplByPaho _this = this;
-
-    /**
-     * 关闭承诺
-     */
-    private volatile ThingPromise<Void> disconnectP;
-
-    /**
-     * 销毁标记
-     */
-    private volatile boolean isDestroyed = false;
 
     /**
      * 订阅三元组集合
      */
     private final Set<PahoSubTrip> trips = new LinkedHashSet<>();
+    /**
+     * 关闭承诺
+     */
+    private volatile ThingPromise<Void> disconnectP;
+    /**
+     * 销毁标记
+     */
+    private volatile boolean isDestroyed = false;
 
     /**
      * 设备MQTT客户端实现（Paho）
@@ -63,7 +60,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
         this.thing = thing;
         this.executor = executor;
         this.pahoClient = new PahoClientFactory().make(remote, access, option);
-        this._string = String.format("%s/mqtt/paho/client", thing);
+        this._string = String.format("%s/mqtt", thing);
 
         // 设置回调
         pahoClient.setCallback(new GroupPahoCallback(new ArrayList<MqttCallbackExtended>() {{
@@ -75,8 +72,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
             add(new PahoCallbackAdapter() {
                 @Override
                 public void connectionLost(Throwable cause) {
-                    logger.warn("{} is lost connection!", _this, cause);
-                    synchronized (_this) {
+                    logger.warn("{} is lost connection!", ThingMqttClientImplByPaho.this, cause);
+                    synchronized (ThingMqttClientImplByPaho.this) {
                         if (null != disconnectP) {
                             disconnectP.trySuccess();
                         }
@@ -96,7 +93,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
     @Override
     public ThingFuture<Void> subscribe(String express, ThingMqttMessageHandler handler) {
-        return executor.promise(promise ->  {
+        return executor.promise(promise -> {
 
             // 构造订阅三元组
             final PahoSubTrip trip = new PahoSubTrip(express, MQTT_QOS_EXACTLY_ONCE, new MqttMessageListenerImpl(handler));
@@ -104,8 +101,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
             // 订阅后续动作
             promise.self()
                     .onSuccess(future -> trips.add(trip))
-                    .onSuccess(future -> logger.debug("{} subscribe mqtt-message success! topic={};", _this, express))
-                    .onFailure(future -> logger.debug("{} subscribe mqtt-message failure! topic={};", _this, express, future.getException()));
+                    .onSuccess(future -> logger.debug("{} subscribe success! topic={};", this, express))
+                    .onFailure(future -> logger.debug("{} subscribe failure! topic={};", this, express, future.getException()));
 
             // 如果已连接，则直接开始订阅
             if (_isConnected()) {
@@ -125,7 +122,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
     public void syncSubscribe(String express, ThingMqttMessageHandler handler) throws ThingException {
         final ThingFuture<?> future = subscribe(express, handler).awaitUninterruptible();
         if (future.isFailure()) {
-            throw new ThingException(thing, format("subscribe %s failure!", express), future.getException());
+            throw new ThingException(thing, format("subscribe: %s failure!", express), future.getException());
         }
     }
 
@@ -135,8 +132,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
             // 发布后续动作
             promise.self()
-                    .onSuccess(future -> logger.debug("{} publish mqtt-message success! topic={};", _this, topic))
-                    .onFailure(future -> logger.debug("{} publish mqtt-message failure! topic={};", _this, topic, future.getException()));
+                    .onSuccess(future -> logger.debug("{} publish success! >> topic={};", this, topic))
+                    .onFailure(future -> logger.debug("{} publish failure! >> topic={};", this, topic, future.getException()));
 
             // 执行发布
             pahoClient.publish(topic, message.getData(), message.getQos(), false, new Object(), new MqttActionListenerImpl(promise));
@@ -151,8 +148,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
             // 连接后续动作
             promise.self()
-                    .onSuccess(future -> logger.debug("{} connect success! remote={};", _this, pahoClient.getServerURI()))
-                    .onFailure(future -> logger.debug("{} connect failure! remote={};", _this, pahoClient.getServerURI(), future.getException()));
+                    .onSuccess(future -> logger.debug("{} connect success! remote={};", this, pahoClient.getServerURI()))
+                    .onFailure(future -> logger.debug("{} connect failure! remote={};", this, pahoClient.getServerURI(), future.getException()));
 
             // 执行连接
             pahoClient.connect(new MqttConnectOptions(), new Object(), new MqttActionListenerImpl(promise));
@@ -166,8 +163,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
             // 断开后续动作
             promise.self()
-                    .onSuccess(future -> logger.debug("{} disconnect success!", _this))
-                    .onFailure(future -> logger.debug("{} disconnect failure!", _this, future.getException()));
+                    .onSuccess(future -> logger.debug("{} disconnect success!", this))
+                    .onFailure(future -> logger.debug("{} disconnect failure!", this, future.getException()));
 
             // 执行关闭
             pahoClient.disconnect(new Object(), new MqttActionListenerImpl(promise));
@@ -184,7 +181,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
         return ThingFutureUtils.uncancellable(executor.promise(connectP -> {
 
             // 检查客户端是否已被销毁
-            synchronized (_this) {
+            synchronized (this) {
                 if (isDestroyed) {
                     throw new IllegalStateException("already destroyed!");
                 }
@@ -195,20 +192,21 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
                     .onSuccess(connF -> {
 
                         // 断开承诺
-                        final ThingPromise<Void> disconnectP = executor.promise(promise ->
+                        final ThingPromise<Void> disP = executor.promise(promise ->
                                 promise.onSuccess(future -> {
 
                                     // 释放断开成功诺
-                                    synchronized (_this) {
-                                        _this.disconnectP = null;
+                                    synchronized (this) {
+                                        disconnectP = null;
                                     }
 
                                 }));
 
                         // 锁定断开承诺
-                        synchronized (_this) {
+                        synchronized (this) {
 
                             // 如果客户端已被销毁，则需要强制断开连接
+                            // double check
                             if (isDestroyed) {
                                 _disconnect().awaitUninterruptible();
                                 connectP.tryException(new IllegalStateException("already destroyed!"));
@@ -216,7 +214,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
                             }
 
                             // 客户端正常，进行锁定操作
-                            _this.disconnectP = disconnectP;
+                            disconnectP = disP;
 
                         }
 
@@ -227,24 +225,24 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
                             public ThingFuture<Void> disconnect() {
 
                                 // 判断当前连接是否已关闭
-                                if (disconnectP.isDone()) {
+                                if (disP.isDone()) {
                                     return executor.promise(promise ->
                                             promise.tryException(new IllegalAccessException("connection is disconnected!")));
                                 }
 
                                 // 判断当前连接是否还有效
-                                if (_this.disconnectP != disconnectP) {
+                                if (disconnectP != disP) {
                                     return executor.promise(promise ->
                                             promise.tryException(new IllegalAccessException("connection is invalid!")));
                                 }
 
                                 // 一切状态正常，进入关闭程序
-                                return ThingFutureUtils.uncancellable(_disconnect().onSuccess(disF -> disconnectP.trySuccess()));
+                                return ThingFutureUtils.uncancellable(_disconnect().onSuccess(disF -> disP.trySuccess()));
                             }
 
                             @Override
                             public ThingFuture<Void> getDisconnectFuture() {
-                                return ThingFutureUtils.uncancellable(disconnectP);
+                                return ThingFutureUtils.uncancellable(disP);
                             }
 
                         });
@@ -255,7 +253,7 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
 
     @Override
     public void destroy() {
-        synchronized (_this) {
+        synchronized (this) {
 
             // 如已被销毁，立即返回
             if (isDestroyed) {
@@ -320,8 +318,8 @@ public class ThingMqttClientImplByPaho implements ThingMqttClient {
             executor.promise(promise -> {
 
                 promise.self()
-                        .onSuccess(future -> logger.debug("{} handle mqtt-message success! topic={};", _this, topic))
-                        .onFailure(future -> logger.debug("{} handle mqtt-message failure! topic={};", _this, topic, future.getException()));
+                        .onSuccess(future -> logger.debug("{} receive success! << topic={};", ThingMqttClientImplByPaho.this, topic))
+                        .onFailure(future -> logger.debug("{} receive failure! << topic={};", ThingMqttClientImplByPaho.this, topic, future.getException()));
 
                 handler.onMessage(topic, new ThingMqttMessageImpl(message.getQos(), message.getPayload()));
                 promise.trySuccess(message);

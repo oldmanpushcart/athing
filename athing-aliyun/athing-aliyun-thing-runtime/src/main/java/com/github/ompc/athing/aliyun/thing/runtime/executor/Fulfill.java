@@ -6,8 +6,7 @@ package com.github.ompc.athing.aliyun.thing.runtime.executor;
  * @param <V> 类型
  */
 @FunctionalInterface
-public
-interface Fulfill<V> {
+public interface Fulfill<V> {
 
     /**
      * 履约承诺
