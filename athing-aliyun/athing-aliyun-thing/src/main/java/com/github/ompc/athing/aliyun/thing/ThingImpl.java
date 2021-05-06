@@ -44,9 +44,7 @@ public class ThingImpl implements Thing {
 
     private volatile boolean destroyed = false;
 
-    ThingImpl(final URI remote,
-              final ThingAccess access,
-              final ThingBootOption option) throws ThingException {
+    ThingImpl(URI remote, ThingAccess access, ThingBootOption option) throws ThingException {
         this.access = access;
         this._string = String.format("/%s/%s", access.getProductId(), access.getThingId());
         this.executor = new ThingExecutorImpl(this, option);
@@ -95,6 +93,8 @@ public class ThingImpl implements Thing {
      * @throws ThingException 初始化失败
      */
     protected Thing init(Set<ThingComLoader> loaders) throws ThingException {
+
+        // 设备运行时中添加自己，给强依赖阿里云实现的组件使用
         ThingRuntimes.append(this, new ThingRuntime() {
             @Override
             public ThingMessenger getThingMessenger() {
@@ -117,7 +117,10 @@ public class ThingImpl implements Thing {
             }
 
         });
+
+        // 初始化组件容器
         container.initializing(loaders);
+
         return this;
     }
 
@@ -171,6 +174,9 @@ public class ThingImpl implements Thing {
         if (executor instanceof ThingExecutorImpl) {
             ((ThingExecutorImpl) executor).shutdown();
         }
+
+        // 从运行时中移除自己
+        ThingRuntimes.remove(this);
 
         logger.info("{} is destroyed!", this);
     }
