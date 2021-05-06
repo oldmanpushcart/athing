@@ -12,9 +12,7 @@ public interface Disposable extends ThingCom {
 
     /**
      * 销毁组件
-     *
-     * @throws Exception 销毁失败
      */
-    void destroy() throws Exception;
+    void onDestroyed();
 
 }

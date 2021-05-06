@@ -1,6 +1,5 @@
 package com.github.ompc.athing.aliyun.thing;
 
-import com.github.ompc.athing.aliyun.framework.util.GsonFactory;
 import com.github.ompc.athing.aliyun.thing.container.ThingComContainer;
 import com.github.ompc.athing.aliyun.thing.container.loader.ThingComLoader;
 import com.github.ompc.athing.aliyun.thing.op.ThingOpImpl;
@@ -9,16 +8,18 @@ import com.github.ompc.athing.aliyun.thing.runtime.ThingRuntimes;
 import com.github.ompc.athing.aliyun.thing.runtime.access.ThingAccess;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.ompc.athing.aliyun.thing.runtime.executor.ThingExecutorImpl;
-import com.github.ompc.athing.aliyun.thing.runtime.messenger.JsonSerializer;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessenger;
 import com.github.ompc.athing.aliyun.thing.runtime.messenger.ThingMessengerImpl;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttClient;
+import com.github.ompc.athing.aliyun.thing.runtime.mqtt.ThingMqttConnection;
 import com.github.ompc.athing.aliyun.thing.runtime.mqtt.paho.ThingMqttClientImplByPaho;
 import com.github.ompc.athing.standard.component.ThingCom;
 import com.github.ompc.athing.standard.thing.Thing;
 import com.github.ompc.athing.standard.thing.ThingException;
+import com.github.ompc.athing.standard.thing.ThingFuture;
 import com.github.ompc.athing.standard.thing.ThingOp;
+import com.github.ompc.athing.standard.thing.boot.ThingComLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,34 @@ public class ThingImpl implements Thing {
         this._string = String.format("/%s/%s", access.getProductId(), access.getThingId());
         this.executor = new ThingExecutorImpl(this, option);
         this.container = new ThingComContainer(this);
-        this.client = new ThingMqttClientImplByPaho(remote, access, option, this, executor);
+        this.client = new ThingMqttClientImplByPaho(remote, access, option, this, executor) {
+            @Override
+            public ThingFuture<ThingMqttConnection> connect() {
+                return super.connect()
+
+                        // 设备连网通知
+                        .onSuccess(connF ->
+                                container.getThingComSet(ThingComLifeCycle.class)
+                                        .forEach(component -> {
+                                            try {
+                                                component.onConnected();
+                                            } catch (Throwable cause) {
+                                                logger.warn("fire onConnected occur an negligible error!", cause);
+                                            }
+                                        }))
+
+                        // 设备断网通知
+                        .onSuccess(connF -> connF.getSuccess().getDisconnectFuture().onSuccess(disF ->
+                                container.getThingComSet(ThingComLifeCycle.class)
+                                        .forEach(component -> {
+                                            try {
+                                                component.onDisconnected();
+                                            } catch (Throwable cause) {
+                                                logger.warn("fire onDisconnected occur an negligible error!", cause);
+                                            }
+                                        })));
+            }
+        };
         this.messenger = new ThingMessengerImpl(option, this, executor, client);
         this.op = new ThingOpImpl(this, container, executor, client, messenger);
     }

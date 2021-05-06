@@ -21,6 +21,6 @@ public interface Initializing extends ThingCom {
      * @param thing 完成初始化的设备
      * @throws Exception 初始化失败
      */
-    void initialized(Thing thing) throws Exception;
+    void onInitialized(Thing thing) throws Exception;
 
 }

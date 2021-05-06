@@ -142,7 +142,7 @@ public class ThingComContainer {
 
                     try {
                         Thread.currentThread().setContextClassLoader(mark.component.getClass().getClassLoader());
-                        ((Initializing) mark.component).initialized(thing);
+                        ((Initializing) mark.component).onInitialized(thing);
                     } finally {
                         Thread.currentThread().setContextClassLoader(oriClassLoader);
                     }
@@ -169,11 +169,10 @@ public class ThingComContainer {
         if (mark.tryMark(State.DESTROYED)) {
             try {
                 if (mark.component instanceof Disposable) {
-                    ((Disposable) mark.component).destroy();
+                    ((Disposable) mark.component).onDestroyed();
                 }
-            } catch (Exception cause) {
-                logger.warn("{} destroy component occur an negligible error!",
-                        ThingComContainer.this, cause);
+            } catch (Throwable cause) {
+                logger.warn("{} destroy component occur an negligible error!", this, cause);
             }
         }
 

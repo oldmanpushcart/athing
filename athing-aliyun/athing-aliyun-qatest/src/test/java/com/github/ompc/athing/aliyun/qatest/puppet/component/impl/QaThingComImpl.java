@@ -2,9 +2,14 @@ package com.github.ompc.athing.aliyun.qatest.puppet.component.impl;
 
 import com.github.ompc.athing.aliyun.qatest.puppet.component.EchoThingCom;
 import com.github.ompc.athing.aliyun.qatest.puppet.component.LightThingCom;
+import com.github.ompc.athing.standard.thing.Thing;
+import com.github.ompc.athing.standard.thing.boot.ThingComLifeCycle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class QaThingComImpl implements LightThingCom, EchoThingCom {
+public class QaThingComImpl implements LightThingCom, EchoThingCom, ThingComLifeCycle {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private volatile int bright = 0;
     private volatile State state = State.OFF;
 
@@ -52,6 +57,26 @@ public class QaThingComImpl implements LightThingCom, EchoThingCom {
     @Override
     public void turnOff() {
         setState(State.OFF);
+    }
+
+    @Override
+    public void onInitialized(Thing thing) throws Exception {
+        logger.info("ThingComLifeCycle#onInitialized()");
+    }
+
+    @Override
+    public void onDestroyed() {
+        logger.info("ThingComLifeCycle#onDestroyed()");
+    }
+
+    @Override
+    public void onConnected() {
+        logger.info("ThingComLifeCycle#onConnected()");
+    }
+
+    @Override
+    public void onDisconnected() {
+        logger.info("ThingComLifeCycle#onDisconnected()");
     }
 
 }
