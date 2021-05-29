@@ -16,6 +16,7 @@
         <module>athing-aliyun-thing</module>
         <module>athing-aliyun-thing-runtime</module>
         <module>athing-aliyun-platform</module>
+        <module>athing-aliyun-qatest</module>
     </modules>
 
     <dependencies>

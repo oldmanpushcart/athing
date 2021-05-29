@@ -13,7 +13,7 @@ target/
 .flattened-pom.xml
 
 # Package Files #
-*.jar
+*.jar !/lib/*.jar
 *.war
 *.nar
 *.ear
