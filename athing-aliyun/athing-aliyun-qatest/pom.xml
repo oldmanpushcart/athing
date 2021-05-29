@@ -61,7 +61,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- 阿里云实现的athing组件 -->
+        <!-- 测试框架 -->
         <dependency>
             <groupId>com.github.athingx.athing.aliyun.component.config</groupId>
             <artifactId>config-api</artifactId>
@@ -84,6 +84,18 @@
             <groupId>com.github.athingx.athing.aliyun.component.monitor</groupId>
             <artifactId>monitor-api</artifactId>
             <version>${athing-aliyun-component.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.1</version>
             <scope>test</scope>
         </dependency>
 

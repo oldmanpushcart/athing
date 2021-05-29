@@ -69,14 +69,6 @@
             <version>0.54.0</version>
         </dependency>
 
-        <!-- 测试工程依赖 -->
-        <dependency>
-            <groupId>com.github.athingx.athing.aliyun</groupId>
-            <artifactId>athing-aliyun-thing</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
 </project>

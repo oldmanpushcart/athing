@@ -19,22 +19,4 @@
         <module>athing-aliyun-qatest</module>
     </modules>
 
-    <dependencies>
-
-        <!-- 测试框架 -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.9</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.1</version>
-            <scope>test</scope>
-        </dependency>
-
-    </dependencies>
-
 </project>

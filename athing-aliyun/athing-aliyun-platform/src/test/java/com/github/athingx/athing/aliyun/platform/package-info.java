@@ -1,1 +1,0 @@
-package com.github.athingx.athing.aliyun.platform;
