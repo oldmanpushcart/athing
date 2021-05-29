@@ -86,6 +86,11 @@ public class ThingComJarClassLoader extends URLClassLoader {
             return super.loadClass(javaClassName, resolve);
         }
 
+        // RUNTIME的类由parent提供
+        if (javaClassName.startsWith("com.github.athingx.athing.aliyun.thing.runtime.")) {
+            return super.loadClass(javaClassName, resolve);
+        }
+
         // 先检查本ClassLoader是否已加载过
         final Class<?> loadedClass = findLoadedClass(javaClassName);
         if (loadedClass != null) {
