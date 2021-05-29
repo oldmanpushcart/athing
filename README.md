@@ -9,7 +9,8 @@
 | (_| / /  | | | | | | | | (_| |
  \__,_\/   |_| |_|_|_| |_|\__, |
                           |___/
-做最容易使用的Java物模型框架                        
+
+Just a Thing                        
 ```
 
 ## 背景简介
@@ -18,45 +19,31 @@
 
 因为认同物模型的概念，我开始接触阿里云的IoT平台。但阿里云IoT平台的SDK是面向功能设计的API，没有针对物模型的概念进行抽象和封装，不便于我实际使用。所以这里我使用Java对阿里云的客户端、云端两套SDK进行了封装，希望能帮助到大家。
 
+## 目标群体
+
+在阿里云IoT平台使用Java语言开发的爱好者
+
 ## 快速上手
 
 ### 一个简单的例子
 
+在实际使用阿里云物模型的时候，必须非常清楚底层Alink协议，并且平台和终端之间采用Json格式来换转换对象。
+
 ```java
-public class Example {
+/**
+ * 物模型接口：ECHO
+ */
+@ThCom(id = "echo")
+public interface EchoThingCom extends ThingCom {
 
     /**
-     * 物模型接口：ECHO
+     * ECHO服务
+     *
+     * @param string 字符串
+     * @return 字符串
      */
-    @ThCom(id = "echo")
-    public interface EchoThingCom extends ThingCom {
-
-        /**
-         * ECHO服务
-         *
-         * @param string 字符串
-         * @return 字符串
-         */
-        @ThService
-        String echo(@ThParam("string") String string);
-
-    }
-
-    public static void main(String... args) throws Exception {
-
-        // 连接设备
-        final Thing thing = new ThingConnector()
-                .connecting(
-                        "ssl://***********.iot-as-mqtt.cn-shanghai.aliyuncs.com:443",
-                        new ThingAccessKey("<PRODUCT>", "<THING_ID>", "***********")
-                )
-                .setThingBoot(new ThingBoot().booting((_thing, arguments) -> (EchoThingCom) words -> words))
-                .connect(new ThingConnectOptions());
-
-        // 销毁设备
-        thing.destroy();
-
-    }
+    @ThService
+    String echo(@ThParam("string") String string);
 
 }
 ```

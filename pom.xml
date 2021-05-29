@@ -1,16 +1,43 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
+
+    <scm>
+        <connection>scm:git:git@github.com:oldmanpushcart/athing.git</connection>
+        <developerConnection>scm:git:git@github.com:oldmanpushcart/athing.git</developerConnection>
+        <url>https://github.com/oldmanpushcart/athing</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>vlinux</id>
+            <name>vlinux</name>
+            <email>oldmanpushcart@gmail.com</email>
+        </developer>
+    </developers>
+
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.github.ompc.athing</groupId>
+    <groupId>com.github.athingx.athing</groupId>
     <artifactId>athing</artifactId>
     <packaging>pom</packaging>
     <version>${revision}</version>
+
     <name>${project.artifactId}</name>
+    <description>just a thing</description>
+    <url>https://github.com/oldmanpushcart/athing</url>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <revision>1.0.0-SNAPSHOT</revision>
     </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -33,6 +60,25 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <doclint>none</doclint>
+                    <source>1.8</source>
+                    <failOnError>false</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>release</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -64,9 +110,28 @@
             </plugin>
         </plugins>
     </build>
+
     <modules>
         <module>athing-standard</module>
         <module>athing-aliyun</module>
-        <module>athing-component</module>
     </modules>
+
+    <dependencies>
+
+        <!-- 测试框架 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.1</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
 </project>

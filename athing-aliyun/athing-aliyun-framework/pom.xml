@@ -4,15 +4,21 @@
          xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.github.ompc.athing.aliyun</groupId>
+        <groupId>com.github.athingx.athing.aliyun</groupId>
         <artifactId>athing-aliyun</artifactId>
         <version>${revision}</version>
     </parent>
     <artifactId>athing-aliyun-framework</artifactId>
     <name>${project.artifactId}</name>
+
+
+    <!--
+        athing-aliyun实现的基础依赖
+        无论是thing还是platform的实现，都必须依赖
+    -->
     <dependencies>
         <dependency>
-            <groupId>com.github.ompc.athing.standard</groupId>
+            <groupId>com.github.athingx.athing.standard</groupId>
             <artifactId>athing-standard-component</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -22,4 +28,5 @@
             <version>2.8.2</version>
         </dependency>
     </dependencies>
+
 </project>

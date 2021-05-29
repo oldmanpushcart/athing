@@ -4,7 +4,7 @@
          xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.github.ompc.athing.standard</groupId>
+        <groupId>com.github.athingx.athing.standard</groupId>
         <artifactId>athing-standard</artifactId>
         <version>${revision}</version>
     </parent>

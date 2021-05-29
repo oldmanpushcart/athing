@@ -3,11 +3,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.github.ompc.athing</groupId>
+        <groupId>com.github.athingx.athing</groupId>
         <artifactId>athing</artifactId>
         <version>${revision}</version>
     </parent>
-    <groupId>com.github.ompc.athing.standard</groupId>
+    <groupId>com.github.athingx.athing.standard</groupId>
     <artifactId>athing-standard</artifactId>
     <packaging>pom</packaging>
     <name>${project.artifactId}</name>

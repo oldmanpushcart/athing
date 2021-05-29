@@ -3,11 +3,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.github.ompc.athing</groupId>
+        <groupId>com.github.athingx.athing</groupId>
         <artifactId>athing</artifactId>
         <version>${revision}</version>
     </parent>
-    <groupId>com.github.ompc.athing.aliyun</groupId>
+    <groupId>com.github.athingx.athing.aliyun</groupId>
     <artifactId>athing-aliyun</artifactId>
     <packaging>pom</packaging>
     <name>${project.artifactId}</name>
@@ -16,6 +16,5 @@
         <module>athing-aliyun-thing</module>
         <module>athing-aliyun-thing-runtime</module>
         <module>athing-aliyun-platform</module>
-        <module>athing-aliyun-qatest</module>
     </modules>
 </project>
