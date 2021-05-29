@@ -9,9 +9,9 @@
     </parent>
 
     <scm>
-        <connection>scm:git:git@github.com:oldmanpushcart/athing.git</connection>
-        <developerConnection>scm:git:git@github.com:oldmanpushcart/athing.git</developerConnection>
-        <url>https://github.com/oldmanpushcart/athing</url>
+        <connection>scm:git:git@github.com:athingx/athing.git</connection>
+        <developerConnection>scm:git:git@github.com:athingx/athing.git</developerConnection>
+        <url>https://github.com/athingx/athing</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -31,7 +31,7 @@
 
     <name>${project.artifactId}</name>
     <description>just a thing</description>
-    <url>https://github.com/oldmanpushcart/athing</url>
+    <url>https://github.com/athingx/athing</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
