@@ -10,6 +10,13 @@ import java.util.Set;
 public interface Thing {
 
     /**
+     * 获取平台代码
+     *
+     * @return 平台代码
+     */
+    String getPlatformCode();
+
+    /**
      * 获取设备产品ID
      *
      * @return 设备产品ID

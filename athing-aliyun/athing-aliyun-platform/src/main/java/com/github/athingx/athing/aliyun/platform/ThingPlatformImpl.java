@@ -117,6 +117,11 @@ class ThingPlatformImpl implements ThingPlatform {
     }
 
     @Override
+    public String getPlatformCode() {
+        return Constants.THING_PLATFORM_CODE;
+    }
+
+    @Override
     public ThingTemplate getThingTemplate(String productId, String thingId) {
 
         // 检查模版中是否包含了定义的产品

@@ -1,5 +1,6 @@
 package com.github.athingx.athing.aliyun.thing;
 
+import com.github.athingx.athing.aliyun.framework.Constants;
 import com.github.athingx.athing.aliyun.thing.op.ThingOpImpl;
 import com.github.athingx.athing.aliyun.thing.runtime.ThingRuntime;
 import com.github.athingx.athing.aliyun.thing.runtime.ThingRuntimes;
@@ -122,6 +123,11 @@ public class ThingImpl implements Thing {
         container.initializing(loaders);
 
         return this;
+    }
+
+    @Override
+    public String getPlatformCode() {
+        return Constants.THING_PLATFORM_CODE;
     }
 
     @Override

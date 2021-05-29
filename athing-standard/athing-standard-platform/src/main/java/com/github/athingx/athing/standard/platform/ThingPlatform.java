@@ -6,6 +6,13 @@ package com.github.athingx.athing.standard.platform;
 public interface ThingPlatform {
 
     /**
+     * 获取平台代码
+     *
+     * @return 平台代码
+     */
+    String getPlatformCode();
+
+    /**
      * 获取设备模版
      *
      * @param productId 产品ID
