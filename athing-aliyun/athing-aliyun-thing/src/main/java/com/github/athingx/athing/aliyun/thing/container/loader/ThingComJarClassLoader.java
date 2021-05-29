@@ -82,7 +82,7 @@ public class ThingComJarClassLoader extends URLClassLoader {
     protected Class<?> loadClass(final String javaClassName, final boolean resolve) throws ClassNotFoundException {
 
         // STANDARD的类由parent提供
-        if (javaClassName.startsWith("com.github.ompc.athing.standard.")) {
+        if (javaClassName.startsWith("com.github.athingx.athing.standard.")) {
             return super.loadClass(javaClassName, resolve);
         }
 

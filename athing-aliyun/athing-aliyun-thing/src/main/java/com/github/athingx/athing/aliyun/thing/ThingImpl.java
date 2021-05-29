@@ -1,6 +1,8 @@
 package com.github.athingx.athing.aliyun.thing;
 
 import com.github.athingx.athing.aliyun.framework.Constants;
+import com.github.athingx.athing.aliyun.thing.container.ThingComContainer;
+import com.github.athingx.athing.aliyun.thing.container.loader.ThingComLoader;
 import com.github.athingx.athing.aliyun.thing.op.ThingOpImpl;
 import com.github.athingx.athing.aliyun.thing.runtime.ThingRuntime;
 import com.github.athingx.athing.aliyun.thing.runtime.ThingRuntimes;
@@ -13,8 +15,6 @@ import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqttClient;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqttConnection;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.paho.ThingMqttClientImplByPaho;
-import com.github.athingx.athing.aliyun.thing.container.ThingComContainer;
-import com.github.athingx.athing.aliyun.thing.container.loader.ThingComLoader;
 import com.github.athingx.athing.standard.component.ThingCom;
 import com.github.athingx.athing.standard.thing.Thing;
 import com.github.athingx.athing.standard.thing.ThingException;

@@ -1,7 +1,6 @@
 package com.github.athingx.athing.aliyun.platform.message;
 
 import com.github.athingx.athing.aliyun.platform.message.decoder.*;
-import com.github.ompc.athing.aliyun.platform.message.decoder.*;
 import com.github.athingx.athing.aliyun.platform.product.ThProductMeta;
 import com.github.athingx.athing.standard.platform.message.ThingMessage;
 import com.github.athingx.athing.standard.platform.message.ThingMessageListener;

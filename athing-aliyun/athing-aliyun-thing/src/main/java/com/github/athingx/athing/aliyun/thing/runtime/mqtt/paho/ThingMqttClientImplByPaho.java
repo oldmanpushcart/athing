@@ -5,7 +5,6 @@ import com.github.athingx.athing.aliyun.thing.runtime.access.ThingAccess;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingPromise;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.*;
-import com.github.ompc.athing.aliyun.thing.runtime.mqtt.*;
 import com.github.athingx.athing.aliyun.thing.util.ThingFutureUtils;
 import com.github.athingx.athing.standard.thing.Thing;
 import com.github.athingx.athing.standard.thing.ThingException;

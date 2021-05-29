@@ -1,13 +1,12 @@
 package com.github.athingx.athing.aliyun.thing.op;
 
+import com.github.athingx.athing.aliyun.thing.container.ThingComContainer;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.athingx.athing.aliyun.thing.runtime.messenger.ThingMessenger;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqttClient;
-import com.github.athingx.athing.standard.thing.*;
-import com.github.athingx.athing.aliyun.thing.container.ThingComContainer;
 import com.github.athingx.athing.standard.component.Identifier;
 import com.github.athingx.athing.standard.component.ThingEvent;
-import com.github.ompc.athing.standard.thing.*;
+import com.github.athingx.athing.standard.thing.*;
 
 /**
  * 设备操作实现

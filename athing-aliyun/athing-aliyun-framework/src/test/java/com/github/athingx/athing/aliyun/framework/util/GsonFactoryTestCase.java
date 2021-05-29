@@ -1,6 +1,8 @@
 package com.github.athingx.athing.aliyun.framework.util;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -40,9 +42,8 @@ public class GsonFactoryTestCase {
 
 
     private static void assertJson(String json, String xpath, String expect) {
-        final JsonElement root = new JsonParser().parse(json);
 
-        JsonElement curr = root;
+        JsonElement curr = new JsonParser().parse(json);
         for (final String path : xpath.split("/")) {
             if ("".equals(path)) {
                 continue;

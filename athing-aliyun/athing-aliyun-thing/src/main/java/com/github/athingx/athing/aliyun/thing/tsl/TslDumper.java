@@ -4,8 +4,6 @@ import com.github.athingx.athing.aliyun.framework.component.meta.*;
 import com.github.athingx.athing.aliyun.thing.tsl.schema.*;
 import com.github.athingx.athing.aliyun.thing.tsl.specs.*;
 import com.github.athingx.athing.aliyun.thing.tsl.validator.TslDataValidator;
-import com.github.ompc.athing.aliyun.thing.tsl.schema.*;
-import com.github.ompc.athing.aliyun.thing.tsl.specs.*;
 import com.github.athingx.athing.standard.component.Identifier;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

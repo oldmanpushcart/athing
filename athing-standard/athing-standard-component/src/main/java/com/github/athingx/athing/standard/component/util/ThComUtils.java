@@ -1,7 +1,7 @@
 package com.github.athingx.athing.standard.component.util;
 
-import com.github.athingx.athing.standard.component.annotation.ThCom;
 import com.github.athingx.athing.standard.component.ThingCom;
+import com.github.athingx.athing.standard.component.annotation.ThCom;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

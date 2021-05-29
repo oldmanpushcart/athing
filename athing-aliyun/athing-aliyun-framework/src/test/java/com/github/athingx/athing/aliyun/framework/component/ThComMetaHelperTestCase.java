@@ -1,6 +1,5 @@
 package com.github.athingx.athing.aliyun.framework.component;
 
-import com.github.athingx.athing.standard.component.annotation.*;
 import com.github.athingx.athing.aliyun.framework.component.meta.ThComMeta;
 import com.github.athingx.athing.aliyun.framework.component.meta.ThEventMeta;
 import com.github.athingx.athing.aliyun.framework.component.meta.ThPropertyMeta;
@@ -8,6 +7,7 @@ import com.github.athingx.athing.aliyun.framework.component.meta.ThServiceMeta;
 import com.github.athingx.athing.standard.component.Identifier;
 import com.github.athingx.athing.standard.component.ThingCom;
 import com.github.athingx.athing.standard.component.ThingEvent;
+import com.github.athingx.athing.standard.component.annotation.*;
 import org.junit.Assert;
 import org.junit.Test;
 

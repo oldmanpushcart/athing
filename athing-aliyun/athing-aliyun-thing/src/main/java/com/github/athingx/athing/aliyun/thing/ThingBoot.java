@@ -1,10 +1,10 @@
 package com.github.athingx.athing.aliyun.thing;
 
 import com.github.athingx.athing.aliyun.framework.util.IOUtils;
-import com.github.athingx.athing.aliyun.thing.runtime.access.ThingAccess;
 import com.github.athingx.athing.aliyun.thing.container.loader.ThingComBootLoader;
 import com.github.athingx.athing.aliyun.thing.container.loader.ThingComJarBootLoader;
 import com.github.athingx.athing.aliyun.thing.container.loader.ThingComLoader;
+import com.github.athingx.athing.aliyun.thing.runtime.access.ThingAccess;
 import com.github.athingx.athing.standard.component.ThingCom;
 import com.github.athingx.athing.standard.thing.Thing;
 import com.github.athingx.athing.standard.thing.ThingException;

@@ -1,6 +1,5 @@
 package com.github.athingx.athing.aliyun.thing.runtime.messenger;
 
-import com.github.athingx.athing.standard.thing.*;
 import com.github.athingx.athing.aliyun.thing.ThingBootOption;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingPromise;
@@ -10,7 +9,7 @@ import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqttMessage;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqttMessageImpl;
 import com.github.athingx.athing.aliyun.thing.util.StringUtils;
-import com.github.ompc.athing.standard.thing.*;
+import com.github.athingx.athing.standard.thing.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

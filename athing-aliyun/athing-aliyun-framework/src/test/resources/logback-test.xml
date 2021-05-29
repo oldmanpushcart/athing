@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.github.ompc.athing" level="debug">
+    <logger name="com.github.athingx.athing" level="debug">
         <appender-ref ref="STDOUT"/>
     </logger>
 
