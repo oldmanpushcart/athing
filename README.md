@@ -9,7 +9,7 @@
 Just a Thing
 ```
 
-# 做最容易使用的JAVA物模型框架
+<span style="font-size:2em;font-weight:bolder;">最容易使用的JAVA物模型框架</span>
 
 ## 背景简介
 
@@ -26,7 +26,7 @@ Just a Thing
 
 1. **框架优势**
 
-   框架的定位为阿里云IoT的Java SDK版本重实现，运行在 **JRE[1.8,,+)** 环境下。aThing具有以下优势：
+   框架的定位为阿里云IoT的Java SDK版本重实现，运行在 **JRE[1.8,+)** 环境下。aThing具有以下优势：
 
    - 物模型抽象封装，降低编码复杂度
    - 异步驱动架构，设备端能用更少资源稳定的运行在弱网环境
