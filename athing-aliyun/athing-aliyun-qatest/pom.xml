@@ -63,25 +63,25 @@
 
         <!-- 测试框架 -->
         <dependency>
-            <groupId>com.github.athingx.athing.aliyun.component.config</groupId>
+            <groupId>com.github.athingx.athing.aliyun.config</groupId>
             <artifactId>config-api</artifactId>
             <version>${athing-aliyun-component.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.athingx.athing.aliyun.component.modular</groupId>
+            <groupId>com.github.athingx.athing.aliyun.modular</groupId>
             <artifactId>modular-api</artifactId>
             <version>${athing-aliyun-component.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.athingx.athing.aliyun.component.tunnel</groupId>
+            <groupId>com.github.athingx.athing.aliyun.tunnel</groupId>
             <artifactId>tunnel-api</artifactId>
             <version>${athing-aliyun-component.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.athingx.athing.aliyun.component.monitor</groupId>
+            <groupId>com.github.athingx.athing.aliyun.monitor</groupId>
             <artifactId>monitor-api</artifactId>
             <version>${athing-aliyun-component.version}</version>
             <scope>test</scope>

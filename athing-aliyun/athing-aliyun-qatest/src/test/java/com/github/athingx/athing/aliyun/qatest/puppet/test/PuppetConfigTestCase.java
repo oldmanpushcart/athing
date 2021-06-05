@@ -1,8 +1,8 @@
 package com.github.athingx.athing.aliyun.qatest.puppet.test;
 
-import com.github.athingx.athing.aliyun.component.config.api.Config;
-import com.github.athingx.athing.aliyun.component.config.api.ConfigThingCom;
-import com.github.athingx.athing.aliyun.component.config.api.Scope;
+import com.github.athingx.athing.aliyun.config.api.Config;
+import com.github.athingx.athing.aliyun.config.api.ConfigThingCom;
+import com.github.athingx.athing.aliyun.config.api.Scope;
 import com.github.athingx.athing.aliyun.qatest.puppet.PuppetSupport;
 import com.github.athingx.athing.aliyun.thing.runtime.ThingRuntimes;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingPromise;

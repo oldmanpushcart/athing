@@ -1,7 +1,7 @@
 package com.github.athingx.athing.aliyun.qatest.puppet.test;
 
-import com.github.athingx.athing.aliyun.component.monitor.api.MonitorThingCom;
-import com.github.athingx.athing.aliyun.component.monitor.api.info.CpuInfo;
+import com.github.athingx.athing.aliyun.monitor.api.MonitorThingCom;
+import com.github.athingx.athing.aliyun.monitor.api.info.CpuInfo;
 import com.github.athingx.athing.aliyun.framework.util.GsonFactory;
 import com.github.athingx.athing.aliyun.qatest.puppet.PuppetSupport;
 import com.github.athingx.athing.aliyun.qatest.puppet.component.EchoThingCom;

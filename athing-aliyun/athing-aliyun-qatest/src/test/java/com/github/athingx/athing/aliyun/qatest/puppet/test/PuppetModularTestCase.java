@@ -1,9 +1,9 @@
 package com.github.athingx.athing.aliyun.qatest.puppet.test;
 
-import com.github.athingx.athing.aliyun.component.modular.api.Committer;
-import com.github.athingx.athing.aliyun.component.modular.api.ModularThingCom;
-import com.github.athingx.athing.aliyun.component.modular.api.ModuleUpgrade;
-import com.github.athingx.athing.aliyun.component.modular.api.ModuleUpgradeListener;
+import com.github.athingx.athing.aliyun.modular.api.Committer;
+import com.github.athingx.athing.aliyun.modular.api.ModularThingCom;
+import com.github.athingx.athing.aliyun.modular.api.ModuleUpgrade;
+import com.github.athingx.athing.aliyun.modular.api.ModuleUpgradeListener;
 import com.github.athingx.athing.aliyun.qatest.puppet.PuppetSupport;
 import com.github.athingx.athing.aliyun.thing.runtime.ThingRuntimes;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingPromise;

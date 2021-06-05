@@ -1,6 +1,6 @@
 package com.github.athingx.athing.aliyun.qatest.puppet;
 
-import com.github.athingx.athing.aliyun.component.monitor.api.MonitorThingCom;
+import com.github.athingx.athing.aliyun.monitor.api.MonitorThingCom;
 import com.github.athingx.athing.aliyun.platform.ThingMessageConsumerBuilder;
 import com.github.athingx.athing.aliyun.platform.ThingPlatformAccess;
 import com.github.athingx.athing.aliyun.platform.ThingPlatformBuilder;
