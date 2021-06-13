@@ -1,6 +1,7 @@
 package com.github.athingx.athing.aliyun.thing.runtime;
 
 import com.github.athingx.athing.aliyun.thing.runtime.access.ThingAccess;
+import com.github.athingx.athing.aliyun.thing.runtime.caller.ThingCaller;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.athingx.athing.aliyun.thing.runtime.messenger.ThingMessenger;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
@@ -37,5 +38,12 @@ public interface ThingRuntime {
      * @return 设备执行器
      */
     ThingExecutor getThingExecutor();
+
+    /**
+     * 获取设备访问者
+     *
+     * @return 设备访问者
+     */
+    ThingCaller getThingCaller();
 
 }

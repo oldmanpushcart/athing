@@ -200,4 +200,11 @@ public class PuppetTestCase extends PuppetSupport {
         }
     }
 
+    @Test
+    public void test$thing_invoke_sync_service$success() throws ThingException {
+        final EchoThingCom.Echo echo = tPuppet.getThingCom(EchoThingCom.class, true)
+                .echoBySync("HELLO!");
+        Assert.assertEquals("HELLO!", echo.getWords());
+    }
+
 }

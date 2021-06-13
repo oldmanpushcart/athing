@@ -6,15 +6,18 @@ import com.github.athingx.athing.standard.thing.ThingFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 设备执行器实现
  */
 public class ThingExecutorImpl implements ThingExecutor {
 
-    private final static ThreadLocal<Runtime> runtimeRef = new ThreadLocal<>();
-    private final static Executor inline = Runnable::run;
+    private final ThreadLocal<AtomicInteger> countRef = ThreadLocal.withInitial(() -> new AtomicInteger(0));
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Thing thing;
@@ -48,7 +51,7 @@ public class ThingExecutorImpl implements ThingExecutor {
      */
     private ExecutorService initWorkers(ThingBootOption option) {
         return Executors.newFixedThreadPool(option.getThreads(), r -> {
-            final Thread worker = new Thread(r, String.format("%s/worker/daemon", this));
+            final Thread worker = new Thread(r, String.format("%s/worker/daemon/%s", this, r.hashCode()));
             worker.setDaemon(true);
             return worker;
         });
@@ -160,24 +163,21 @@ public class ThingExecutorImpl implements ThingExecutor {
     @Override
     public void execute(Runnable command) {
 
-        final Runtime runtime = runtimeRef.get();
-
         // 内联
-        if (null != runtime) {
+        if (countRef.get().get() > 0) {
             command.run();
         }
 
         // 独立
         else {
             workers.execute(() -> {
-
+                final AtomicInteger counter = countRef.get();
                 try {
-                    runtimeRef.set(new Runtime());
+                    counter.incrementAndGet();
                     command.run();
                 } finally {
-                    runtimeRef.remove();
+                    counter.decrementAndGet();
                 }
-
             });
         }
 
@@ -191,13 +191,6 @@ public class ThingExecutorImpl implements ThingExecutor {
             workers.shutdownNow();
         }
         logger.info("{} is shutdown!", this);
-    }
-
-    /**
-     * 执行环境
-     */
-    private static class Runtime {
-
     }
 
 }

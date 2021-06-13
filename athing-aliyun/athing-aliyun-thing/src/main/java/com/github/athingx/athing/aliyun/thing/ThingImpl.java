@@ -7,6 +7,8 @@ import com.github.athingx.athing.aliyun.thing.op.ThingOpImpl;
 import com.github.athingx.athing.aliyun.thing.runtime.ThingRuntime;
 import com.github.athingx.athing.aliyun.thing.runtime.ThingRuntimes;
 import com.github.athingx.athing.aliyun.thing.runtime.access.ThingAccess;
+import com.github.athingx.athing.aliyun.thing.runtime.caller.ThingCaller;
+import com.github.athingx.athing.aliyun.thing.runtime.caller.ThingCallerImpl;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingExecutor;
 import com.github.athingx.athing.aliyun.thing.runtime.executor.ThingExecutorImpl;
 import com.github.athingx.athing.aliyun.thing.runtime.messenger.ThingMessenger;
@@ -40,6 +42,7 @@ public class ThingImpl implements Thing {
     private final ThingExecutor executor;
     private final ThingMqttClient client;
     private final ThingMessenger messenger;
+    private final ThingCaller caller;
     private final ThingOp op;
     private final String _string;
 
@@ -79,7 +82,8 @@ public class ThingImpl implements Thing {
             }
         };
         this.messenger = new ThingMessengerImpl(option, this, executor, client);
-        this.op = new ThingOpImpl(this, container, executor, client, messenger);
+        this.caller = new ThingCallerImpl(executor);
+        this.op = new ThingOpImpl(this, container, executor, caller, client, messenger);
     }
 
     @Override
@@ -115,6 +119,11 @@ public class ThingImpl implements Thing {
             @Override
             public ThingExecutor getThingExecutor() {
                 return executor;
+            }
+
+            @Override
+            public ThingCaller getThingCaller() {
+                return caller;
             }
 
         });

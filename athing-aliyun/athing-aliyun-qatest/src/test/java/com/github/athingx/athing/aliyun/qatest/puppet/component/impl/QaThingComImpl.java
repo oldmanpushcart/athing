@@ -2,6 +2,8 @@ package com.github.athingx.athing.aliyun.qatest.puppet.component.impl;
 
 import com.github.athingx.athing.aliyun.qatest.puppet.component.EchoThingCom;
 import com.github.athingx.athing.aliyun.qatest.puppet.component.LightThingCom;
+import com.github.athingx.athing.aliyun.thing.runtime.ThingRuntimes;
+import com.github.athingx.athing.aliyun.thing.runtime.caller.ThingCaller;
 import com.github.athingx.athing.standard.thing.Thing;
 import com.github.athingx.athing.standard.thing.boot.ThingComLifeCycle;
 import org.slf4j.Logger;
@@ -10,17 +12,19 @@ import org.slf4j.LoggerFactory;
 public class QaThingComImpl implements LightThingCom, EchoThingCom, ThingComLifeCycle {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private ThingCaller caller;
     private volatile int bright = 0;
     private volatile State state = State.OFF;
 
     @Override
     public Echo echoBySync(String words) {
-        return new Echo(words);
+        return caller.byReturn(promise -> promise.trySuccess(new Echo(words)));
     }
 
     @Override
     public Echo echoByAsync(Echo echo) {
-        return echo;
+        return caller.byReturn(promise -> promise.trySuccess(echo));
     }
 
     @Override
@@ -60,8 +64,9 @@ public class QaThingComImpl implements LightThingCom, EchoThingCom, ThingComLife
     }
 
     @Override
-    public void onInitialized(Thing thing) throws Exception {
+    public void onInitialized(Thing thing) {
         logger.info("ThingComLifeCycle#onInitialized()");
+        this.caller = ThingRuntimes.getThingRuntime(thing).getThingCaller();
     }
 
     @Override

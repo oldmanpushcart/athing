@@ -4,8 +4,8 @@ import com.github.athingx.athing.aliyun.framework.component.meta.ThServiceMeta;
 import com.github.athingx.athing.aliyun.framework.util.GsonFactory;
 import com.github.athingx.athing.aliyun.thing.container.ThComStub;
 import com.github.athingx.athing.aliyun.thing.container.ThingComContainer;
+import com.github.athingx.athing.aliyun.thing.runtime.caller.ThingCaller;
 import com.github.athingx.athing.aliyun.thing.runtime.messenger.ThingMessenger;
-import com.github.athingx.athing.aliyun.thing.runtime.messenger.alink.ThingReplyImpl;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqtt;
 import com.github.athingx.athing.aliyun.thing.runtime.mqtt.ThingMqttMessage;
 import com.github.athingx.athing.standard.component.Identifier;
@@ -17,7 +17,10 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+
 import static com.github.athingx.athing.aliyun.thing.runtime.messenger.JsonSerializerImpl.serializer;
+import static com.github.athingx.athing.aliyun.thing.runtime.messenger.alink.ThingReplyImpl.*;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -26,13 +29,15 @@ public class ThingServiceOp {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ThingComContainer container;
     private final ThingMessenger messenger;
+    private final ThingCaller caller;
 
     private final Gson gson = GsonFactory.getGson();
     private final JsonParser parser = new JsonParser();
     private final String _string;
 
-    public ThingServiceOp(Thing thing, ThingComContainer container, ThingMqtt mqtt, ThingMessenger messenger) throws ThingException {
+    public ThingServiceOp(Thing thing, ThingComContainer container, ThingCaller caller, ThingMqtt mqtt, ThingMessenger messenger) throws ThingException {
         this.container = container;
+        this.caller = caller;
         this.messenger = messenger;
         this._string = format("%s/op/service", thing);
 
@@ -97,7 +102,7 @@ public class ThingServiceOp {
 
         // 不合法的标识值
         if (!Identifier.test(identity)) {
-            messenger.post(serializer, rTopic, ThingReplyImpl.failure(token, ThingReplyImpl.ALINK_REPLY_REQUEST_ERROR, format("identity: %s is illegal", identity)));
+            messenger.post(serializer, rTopic, failure(token, ALINK_REPLY_REQUEST_ERROR, format("identity: %s is illegal", identity)));
             logger.warn("{} invoke failure: illegal identity, token={};identity={};", this, token, identity);
             return;
         }
@@ -107,7 +112,7 @@ public class ThingServiceOp {
         // 过滤掉未提供的组件
         final ThComStub thComStub = container.getThComStub(identifier.getComponentId());
         if (null == thComStub) {
-            messenger.post(serializer, rTopic, ThingReplyImpl.failure(token, ThingReplyImpl.ALINK_REPLY_REQUEST_ERROR, format("component: %s not provided", identifier.getComponentId())));
+            messenger.post(serializer, rTopic, failure(token, ALINK_REPLY_REQUEST_ERROR, format("component: %s not provided", identifier.getComponentId())));
             logger.warn("{} invoke failure: component not provided, token={};identity={};", this, token, identity);
             return;
         }
@@ -115,27 +120,32 @@ public class ThingServiceOp {
         // 过滤掉未提供的服务
         final ThServiceMeta thServiceMeta = thComStub.getThComMeta().getThServiceMeta(identifier);
         if (null == thServiceMeta) {
-            messenger.post(serializer, rTopic, ThingReplyImpl.failure(token, ThingReplyImpl.ALINK_REPLY_SERVICE_NOT_PROVIDED, format("service: %s not provided", identity)));
+            messenger.post(serializer, rTopic, failure(token, ALINK_REPLY_SERVICE_NOT_PROVIDED, format("service: %s not provided", identity)));
             logger.warn("{} invoke failure: service is not provided, token={};identity={};", this, token, identity);
             return;
         }
 
-        // 执行服务调用
-        final Object result;
-        try {
+        caller.call(promise -> {
             final JsonObject argumentJson = json.get("params").getAsJsonObject();
-            result = thServiceMeta.service(
-                    thComStub.getThingCom(),
-                    (name, type) -> gson.fromJson(argumentJson.get(name), type)
-            );
-        } catch (Throwable cause) {
-            messenger.post(serializer, rTopic, ThingReplyImpl.failure(token, ThingReplyImpl.ALINK_REPLY_PROCESS_ERROR, cause.getLocalizedMessage()));
-            logger.warn("{} invoke failure: invoke error, token={};identity={};", this, token, identity, cause);
-            return;
-        }
-
-        messenger.post(serializer, rTopic, ThingReplyImpl.success(token, result));
-        logger.info("{} invoke success, token={};identity={};", this, token, identity);
+            try {
+                promise.trySuccess(
+                        thServiceMeta.service(
+                                thComStub.getThingCom(),
+                                (name, type) -> gson.fromJson(argumentJson.get(name), type)
+                        )
+                );
+            } catch (InvocationTargetException itCause) {
+                throw itCause.getCause();
+            }
+        })
+                .onSuccess(future -> {
+                    messenger.post(serializer, rTopic, success(token, future.get()));
+                    logger.info("{} invoke success, token={};identity={};", this, token, identity);
+                })
+                .onFailure(future -> {
+                    messenger.post(serializer, rTopic, failure(token, ALINK_REPLY_PROCESS_ERROR, future.getException().getLocalizedMessage()));
+                    logger.warn("{} invoke failure: invoke error, token={};identity={};", this, token, identity, future.getException());
+                });
 
     }
 
